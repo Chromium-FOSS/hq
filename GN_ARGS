@@ -1,0 +1,31 @@
+target_os="android"
+
+# Turning off symbols will make debugging almost impossible, but the build will be much faster. Otherwise, =1
+symbol_level=0
+
+# more debug switches
+remove_webcore_debug_symbols=true
+is_debug=false
+is_official_build=true
+
+# otherwise a red frame will appear
+android_channel="stable"
+
+# disable features
+enable_nacl=false
+enable_vr=false
+enable_widevine=false
+enable_google_now=false
+enable_remoting=false
+
+## codec settings
+ffmpeg_branding="Chrome"
+proprietary_codecs=true
+
+# no api keys
+use_official_google_api_keys=false
+google_api_key="no"
+google_default_client_id="no"
+google_default_client_secret="no"
+
+use_sysroot=false
