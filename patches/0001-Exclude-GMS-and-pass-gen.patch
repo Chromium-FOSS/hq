@@ -1,0 +1,439 @@
+From 07617fee36f0c231e4df54a57a28e03fc3672de2 Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Tue, 12 Jun 2018 20:44:31 +0200
+Subject: [PATCH] Exclude GMS and pass gen
+
+---
+ build/config/android/config.gni               |   6 -
+ .../third_party/android_tools/BUILD.gn        | 138 ------------------
+ chrome/android/BUILD.gn                       |  16 --
+ chrome/test/android/BUILD.gn                  |   2 -
+ chrome/test/android/cast_emulator/BUILD.gn    |   1 -
+ components/background_task_scheduler/BUILD.gn |  13 --
+ .../gcm_driver/instance_id/android/BUILD.gn   |   2 -
+ .../signin/core/browser/android/BUILD.gn      |   3 -
+ device/BUILD.gn                               |   3 -
+ device/geolocation/BUILD.gn                   |   3 -
+ services/BUILD.gn                             |   8 -
+ services/shape_detection/BUILD.gn             |   4 -
+ third_party/cacheinvalidation/BUILD.gn        |   3 -
+ third_party/robolectric/BUILD.gn              |   3 -
+ .../webrtc/third_party/robolectric/BUILD.gn   |   3 -
+ 15 files changed, 208 deletions(-)
+
+diff --git a/build/config/android/config.gni b/build/config/android/config.gni
+index dcd694c..c35e325 100644
+--- a/build/config/android/config.gni
++++ b/build/config/android/config.gni
+@@ -104,12 +104,6 @@ if (is_android || is_chromeos) {
+     default_android_keystore_password = "chromium"
+   }
+ 
+-  # google_play_services_package contains the path where individual client
+-  # targets (e.g. google_play_services_base_java) are located.
+-  if (!defined(google_play_services_package)) {
+-    google_play_services_package = "//third_party/android_tools"
+-  }
+-
+   if (!defined(android_support_library_package)) {
+     android_support_library_package = "//third_party/android_tools/support"
+   }
+diff --git a/build/secondary/third_party/android_tools/BUILD.gn b/build/secondary/third_party/android_tools/BUILD.gn
+index 4a902b5..38688d4 100644
+--- a/build/secondary/third_party/android_tools/BUILD.gn
++++ b/build/secondary/third_party/android_tools/BUILD.gn
+@@ -103,142 +103,4 @@ if (enable_java_templates) {
+     android_deps_target_name = "com_android_support_support_v13_java"
+     fallback_target = "$android_support_library_package:$target_name"
+   }
+-
+-  # TODO(dgn): Use the POM files instead of hardcoding the dependencies.
+-  gms_path = "$default_extras_android_sdk_root/extras/google/m2repository/com/google/android/gms"
+-  gms_version = "11.2.0"
+-
+-  android_aar_prebuilt("google_play_services_basement_java") {
+-    deps = [
+-      ":android_support_v4_java",
+-    ]
+-    _lib_name = "play-services-basement"
+-    aar_path = "$gms_path/$_lib_name/$gms_version/$_lib_name-$gms_version.aar"
+-    info_path = "//build/secondary/third_party/android_tools/$target_name.info"
+-    input_jars_paths = [ "$android_sdk/optional/org.apache.http.legacy.jar" ]
+-  }
+-
+-  android_aar_prebuilt("google_play_services_tasks_java") {
+-    deps = [
+-      ":google_play_services_basement_java",
+-    ]
+-    _lib_name = "play-services-tasks"
+-    aar_path = "$gms_path/$_lib_name/$gms_version/$_lib_name-$gms_version.aar"
+-    info_path = "//build/secondary/third_party/android_tools/$target_name.info"
+-    proguard_configs =
+-        [ "${target_gen_dir}/google_play_services_basement_java/proguard.txt" ]
+-  }
+-
+-  android_aar_prebuilt("google_play_services_base_java") {
+-    deps = [
+-      ":android_support_v4_java",
+-      ":google_play_services_basement_java",
+-      ":google_play_services_tasks_java",
+-    ]
+-    _lib_name = "play-services-base"
+-    aar_path = "$gms_path/$_lib_name/$gms_version/$_lib_name-$gms_version.aar"
+-    info_path = "//build/secondary/third_party/android_tools/$target_name.info"
+-    proguard_configs =
+-        [ "${target_gen_dir}/google_play_services_basement_java/proguard.txt" ]
+-  }
+-
+-  android_aar_prebuilt("google_play_services_auth_base_java") {
+-    deps = [
+-      ":google_play_services_base_java",
+-      ":google_play_services_basement_java",
+-    ]
+-    _lib_name = "play-services-auth-base"
+-    aar_path = "$gms_path/$_lib_name/$gms_version/$_lib_name-$gms_version.aar"
+-    info_path = "//build/secondary/third_party/android_tools/$target_name.info"
+-    proguard_configs =
+-        [ "${target_gen_dir}/google_play_services_basement_java/proguard.txt" ]
+-  }
+-
+-  android_aar_prebuilt("google_play_services_auth_java") {
+-    deps = [
+-      ":google_play_services_auth_base_java",
+-      ":google_play_services_base_java",
+-      ":google_play_services_basement_java",
+-    ]
+-    _lib_name = "play-services-auth"
+-    aar_path = "$gms_path/$_lib_name/$gms_version/$_lib_name-$gms_version.aar"
+-    info_path = "//build/secondary/third_party/android_tools/$target_name.info"
+-    proguard_configs =
+-        [ "${target_gen_dir}/google_play_services_basement_java/proguard.txt" ]
+-  }
+-
+-  android_aar_prebuilt("google_play_services_cast_java") {
+-    deps = [
+-      ":android_support_v7_mediarouter_java",
+-      ":google_play_services_base_java",
+-      ":google_play_services_basement_java",
+-    ]
+-    _lib_name = "play-services-cast"
+-    aar_path = "$gms_path/$_lib_name/$gms_version/$_lib_name-$gms_version.aar"
+-    info_path = "//build/secondary/third_party/android_tools/$target_name.info"
+-    proguard_configs =
+-        [ "${target_gen_dir}/google_play_services_basement_java/proguard.txt" ]
+-  }
+-
+-  android_aar_prebuilt("google_play_services_iid_java") {
+-    deps = [
+-      ":google_play_services_base_java",
+-      ":google_play_services_basement_java",
+-    ]
+-    _lib_name = "play-services-iid"
+-    aar_path = "$gms_path/$_lib_name/$gms_version/$_lib_name-$gms_version.aar"
+-    info_path = "//build/secondary/third_party/android_tools/$target_name.info"
+-    proguard_configs =
+-        [ "${target_gen_dir}/google_play_services_basement_java/proguard.txt" ]
+-  }
+-
+-  android_aar_prebuilt("google_play_services_gcm_java") {
+-    deps = [
+-      ":google_play_services_base_java",
+-      ":google_play_services_basement_java",
+-      ":google_play_services_iid_java",
+-    ]
+-    _lib_name = "play-services-gcm"
+-    aar_path = "$gms_path/$_lib_name/$gms_version/$_lib_name-$gms_version.aar"
+-    info_path = "//build/secondary/third_party/android_tools/$target_name.info"
+-    proguard_configs =
+-        [ "${target_gen_dir}/google_play_services_basement_java/proguard.txt" ]
+-  }
+-
+-  android_aar_prebuilt("google_play_services_location_java") {
+-    deps = [
+-      ":google_play_services_base_java",
+-      ":google_play_services_basement_java",
+-    ]
+-    _lib_name = "play-services-location"
+-    aar_path = "$gms_path/$_lib_name/$gms_version/$_lib_name-$gms_version.aar"
+-    info_path = "//build/secondary/third_party/android_tools/$target_name.info"
+-    proguard_configs =
+-        [ "${target_gen_dir}/google_play_services_basement_java/proguard.txt" ]
+-  }
+-
+-  android_aar_prebuilt("google_play_services_vision_java") {
+-    deps = [
+-      ":google_play_services_base_java",
+-      ":google_play_services_basement_java",
+-      ":google_play_services_vision_common_java",
+-    ]
+-    _lib_name = "play-services-vision"
+-    aar_path = "$gms_path/$_lib_name/$gms_version/$_lib_name-$gms_version.aar"
+-    info_path = "//build/secondary/third_party/android_tools/$target_name.info"
+-    proguard_configs =
+-        [ "${target_gen_dir}/google_play_services_basement_java/proguard.txt" ]
+-  }
+-
+-  android_aar_prebuilt("google_play_services_vision_common_java") {
+-    deps = [
+-      ":google_play_services_base_java",
+-      ":google_play_services_basement_java",
+-    ]
+-    _lib_name = "play-services-vision-common"
+-    aar_path = "$gms_path/$_lib_name/$gms_version/$_lib_name-$gms_version.aar"
+-    info_path = "//build/secondary/third_party/android_tools/$target_name.info"
+-    proguard_configs =
+-        [ "${target_gen_dir}/google_play_services_basement_java/proguard.txt" ]
+-  }
+ }
+diff --git a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
+index 837e387..8120f19 100644
+--- a/chrome/android/BUILD.gn
++++ b/chrome/android/BUILD.gn
+@@ -196,13 +196,6 @@ android_library("chrome_java") {
+     ":document_tab_model_info_proto_java",
+     ":partner_location_descriptor_proto_java",
+     ":thumbnail_cache_entry_proto_java",
+-    "$google_play_services_package:google_play_services_auth_base_java",
+-    "$google_play_services_package:google_play_services_base_java",
+-    "$google_play_services_package:google_play_services_basement_java",
+-    "$google_play_services_package:google_play_services_cast_java",
+-    "$google_play_services_package:google_play_services_gcm_java",
+-    "$google_play_services_package:google_play_services_iid_java",
+-    "$google_play_services_package:google_play_services_tasks_java",
+     "//base:base_java",
+     "//chrome/android/third_party/compositor_animator:compositor_animator_java",
+     "//chrome/android/webapk/libs/client:client_java",
+@@ -442,9 +435,6 @@ junit_binary("chrome_junit_tests") {
+     ":chrome_java_resources",
+     ":class_register_java",
+     ":partner_location_descriptor_proto_java",
+-    "$google_play_services_package:google_play_services_base_java",
+-    "$google_play_services_package:google_play_services_basement_java",
+-    "$google_play_services_package:google_play_services_cast_java",
+     "//base:base_java",
+     "//base:base_java_test_support",
+     "//base:base_junit_test_support",
+@@ -518,12 +508,6 @@ android_library("chrome_test_java") {
+ 
+   deps = [
+     ":partner_location_descriptor_proto_java",
+-    "$google_play_services_package:google_play_services_base_java",
+-    "$google_play_services_package:google_play_services_basement_java",
+-    "$google_play_services_package:google_play_services_cast_java",
+-    "$google_play_services_package:google_play_services_gcm_java",
+-    "$google_play_services_package:google_play_services_iid_java",
+-    "$google_play_services_package:google_play_services_tasks_java",
+     "//base:base_java",
+     "//base:base_java_test_support",
+     "//chrome/android:app_hooks_java",
+diff --git a/chrome/test/android/BUILD.gn b/chrome/test/android/BUILD.gn
+index 23a5547..5f8d625 100644
+--- a/chrome/test/android/BUILD.gn
++++ b/chrome/test/android/BUILD.gn
+@@ -67,8 +67,6 @@ android_library("chrome_java_test_support") {
+     "javatests/src/org/chromium/chrome/test/util/TranslateUtil.java",
+   ]
+   deps = [
+-    "$google_play_services_package:google_play_services_base_java",
+-    "$google_play_services_package:google_play_services_basement_java",
+     "//base:base_java",
+     "//base:base_java_test_support",
+     "//chrome/android:chrome_java",
+diff --git a/chrome/test/android/cast_emulator/BUILD.gn b/chrome/test/android/cast_emulator/BUILD.gn
+index 0c36233..233f043 100644
+--- a/chrome/test/android/cast_emulator/BUILD.gn
++++ b/chrome/test/android/cast_emulator/BUILD.gn
+@@ -20,7 +20,6 @@ android_library("cast_emulator_java") {
+     "src/org/chromium/chrome/browser/media/router/DummyRoutePublisher.java",
+   ]
+   deps = [
+-    "$google_play_services_package:google_play_services_cast_java",
+     "//base:base_java",
+     "//third_party/android_tools:android_support_v7_appcompat_java",
+     "//third_party/android_tools:android_support_v7_mediarouter_java",
+diff --git a/components/background_task_scheduler/BUILD.gn b/components/background_task_scheduler/BUILD.gn
+index 9525aff..8929a97 100644
+--- a/components/background_task_scheduler/BUILD.gn
++++ b/components/background_task_scheduler/BUILD.gn
+@@ -42,10 +42,6 @@ if (is_android) {
+     ]
+ 
+     deps = [
+-      "$google_play_services_package:google_play_services_base_java",
+-      "$google_play_services_package:google_play_services_basement_java",
+-      "$google_play_services_package:google_play_services_gcm_java",
+-      "$google_play_services_package:google_play_services_tasks_java",
+       "//base:base_java",
+       "//third_party/android_tools:android_support_annotations_java",
+     ]
+@@ -61,10 +57,6 @@ if (is_android) {
+ 
+     deps = [
+       ":background_task_scheduler_java",
+-      "$google_play_services_package:google_play_services_base_java",
+-      "$google_play_services_package:google_play_services_basement_java",
+-      "$google_play_services_package:google_play_services_gcm_java",
+-      "$google_play_services_package:google_play_services_tasks_java",
+       "//base:base_java",
+       "//base:base_java_test_support",
+       "//third_party/android_support_test_runner:runner_java",
+@@ -85,11 +77,6 @@ if (is_android) {
+ 
+     deps = [
+       ":background_task_scheduler_java",
+-      "$google_play_services_package:google_play_services_auth_base_java",
+-      "$google_play_services_package:google_play_services_base_java",
+-      "$google_play_services_package:google_play_services_basement_java",
+-      "$google_play_services_package:google_play_services_gcm_java",
+-      "$google_play_services_package:google_play_services_tasks_java",
+       "//base:base_java",
+       "//base:base_java_test_support",
+       "//base:base_junit_test_support",
+diff --git a/components/gcm_driver/instance_id/android/BUILD.gn b/components/gcm_driver/instance_id/android/BUILD.gn
+index 2fdc248..a8cc895 100644
+--- a/components/gcm_driver/instance_id/android/BUILD.gn
++++ b/components/gcm_driver/instance_id/android/BUILD.gn
+@@ -20,7 +20,6 @@ generate_jni("test_support_jni_headers") {
+ 
+ android_library("instance_id_driver_java") {
+   deps = [
+-    "$google_play_services_package:google_play_services_iid_java",
+     "//base:base_java",
+   ]
+ 
+@@ -33,7 +32,6 @@ android_library("instance_id_driver_java") {
+ android_library("instance_id_driver_test_support_java") {
+   deps = [
+     ":instance_id_driver_java",
+-    "$google_play_services_package:google_play_services_iid_java",
+     "//base:base_java",
+   ]
+ 
+diff --git a/components/signin/core/browser/android/BUILD.gn b/components/signin/core/browser/android/BUILD.gn
+index ad44243..0e3fd64 100644
+--- a/components/signin/core/browser/android/BUILD.gn
++++ b/components/signin/core/browser/android/BUILD.gn
+@@ -13,9 +13,6 @@ generate_jni("jni_headers") {
+ 
+ android_library("java") {
+   deps = [
+-    "$google_play_services_package:google_play_services_auth_base_java",
+-    "$google_play_services_package:google_play_services_base_java",
+-    "$google_play_services_package:google_play_services_basement_java",
+     "//base:base_java",
+     "//net/android:net_java",
+     "//third_party/android_tools:android_support_annotations_java",
+diff --git a/device/BUILD.gn b/device/BUILD.gn
+index ac519c7..dfff303 100644
+--- a/device/BUILD.gn
++++ b/device/BUILD.gn
+@@ -368,9 +368,6 @@ if (is_android) {
+       "geolocation/android/junit/src/org/chromium/device/geolocation/LocationProviderTest.java",
+     ]
+     deps = [
+-      "$google_play_services_package:google_play_services_base_java",
+-      "$google_play_services_package:google_play_services_basement_java",
+-      "$google_play_services_package:google_play_services_location_java",
+       "//base:base_java",
+       "//base:base_java_test_support",
+       "//base:base_junit_test_support",
+diff --git a/device/geolocation/BUILD.gn b/device/geolocation/BUILD.gn
+index a5dad7e..a8b8349 100644
+--- a/device/geolocation/BUILD.gn
++++ b/device/geolocation/BUILD.gn
+@@ -128,9 +128,6 @@ if (is_android) {
+     deps = [
+       ":geolocation",
+       ":geolocation_jni_headers",
+-      "$google_play_services_package:google_play_services_base_java",
+-      "$google_play_services_package:google_play_services_basement_java",
+-      "$google_play_services_package:google_play_services_location_java",
+       "//base:base_java",
+     ]
+   }
+diff --git a/services/BUILD.gn b/services/BUILD.gn
+index 889959b..d8b1743 100644
+--- a/services/BUILD.gn
++++ b/services/BUILD.gn
+@@ -154,10 +154,6 @@ if (is_android) {
+       "shape_detection/android/junit/src/org/chromium/shape_detection/BitmapUtilsTest.java",
+     ]
+     deps = [
+-      "$google_play_services_package:google_play_services_base_java",
+-      "$google_play_services_package:google_play_services_basement_java",
+-      "$google_play_services_package:google_play_services_vision_common_java",
+-      "$google_play_services_package:google_play_services_vision_java",
+       "//base:base_java",
+       "//base:base_java_test_support",
+       "//base:base_junit_test_support",
+@@ -183,10 +179,6 @@ if (is_android) {
+       "shape_detection/android/javatests/src/org/chromium/shape_detection/TextDetectionImplTest.java",
+     ]
+     deps = [
+-      "$google_play_services_package:google_play_services_base_java",
+-      "$google_play_services_package:google_play_services_basement_java",
+-      "$google_play_services_package:google_play_services_vision_common_java",
+-      "$google_play_services_package:google_play_services_vision_java",
+       "//base:base_java",
+       "//base:base_java_test_support",
+       "//mojo/public/java:base_java",
+diff --git a/services/shape_detection/BUILD.gn b/services/shape_detection/BUILD.gn
+index cebf738..04c488b 100644
+--- a/services/shape_detection/BUILD.gn
++++ b/services/shape_detection/BUILD.gn
+@@ -90,10 +90,6 @@ if (is_android) {
+     ]
+ 
+     deps = [
+-      "$google_play_services_package:google_play_services_base_java",
+-      "$google_play_services_package:google_play_services_basement_java",
+-      "$google_play_services_package:google_play_services_vision_common_java",
+-      "$google_play_services_package:google_play_services_vision_java",
+       "//base:base_java",
+       "//mojo/android:system_java",
+       "//mojo/public/java:base_java",
+diff --git a/third_party/cacheinvalidation/BUILD.gn b/third_party/cacheinvalidation/BUILD.gn
+index fd4d77b..2386c55 100644
+--- a/third_party/cacheinvalidation/BUILD.gn
++++ b/third_party/cacheinvalidation/BUILD.gn
+@@ -137,9 +137,6 @@ if (is_android) {
+     emma_never_instrument = true
+     deps = [
+       ":cacheinvalidation_proto_java",
+-      "$google_play_services_package:google_play_services_gcm_java",
+-      "$google_play_services_package:google_play_services_iid_java",
+-      "$google_play_services_package:google_play_services_tasks_java",
+       "//third_party/android_protobuf:protobuf_nano_javalib",
+       "//third_party/android_tools:android_gcm_java",
+     ]
+diff --git a/third_party/robolectric/BUILD.gn b/third_party/robolectric/BUILD.gn
+index 935065f..dee8cd7 100644
+--- a/third_party/robolectric/BUILD.gn
++++ b/third_party/robolectric/BUILD.gn
+@@ -746,9 +746,6 @@ java_library("shadows_play_services_java") {
+     ":robolectric_shadowapi_java",
+     ":robolectric_utils_java",
+     ":shadows_core_java",
+-    "$google_play_services_package:google_play_services_auth_base_java",
+-    "$google_play_services_package:google_play_services_base_java",
+-    "$google_play_services_package:google_play_services_basement_java",
+     "//third_party/android_tools:android_support_v4_java",
+     "//third_party/gson:gson_java",
+     "//third_party/guava:guava_java",
+diff --git a/third_party/webrtc/third_party/robolectric/BUILD.gn b/third_party/webrtc/third_party/robolectric/BUILD.gn
+index 935065f..dee8cd7 100644
+--- a/third_party/webrtc/third_party/robolectric/BUILD.gn
++++ b/third_party/webrtc/third_party/robolectric/BUILD.gn
+@@ -746,9 +746,6 @@ java_library("shadows_play_services_java") {
+     ":robolectric_shadowapi_java",
+     ":robolectric_utils_java",
+     ":shadows_core_java",
+-    "$google_play_services_package:google_play_services_auth_base_java",
+-    "$google_play_services_package:google_play_services_base_java",
+-    "$google_play_services_package:google_play_services_basement_java",
+     "//third_party/android_tools:android_support_v4_java",
+     "//third_party/gson:gson_java",
+     "//third_party/guava:guava_java",
+-- 
+2.17.1
+
