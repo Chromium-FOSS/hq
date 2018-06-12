@@ -1,0 +1,25 @@
+From d32a871bc6b6be579d636a7164efc41a4c9d65dc Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Tue, 12 Jun 2018 19:49:53 +0200
+Subject: [PATCH] use_sysroot android fix
+
+---
+ base/BUILD.gn | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/base/BUILD.gn b/base/BUILD.gn
+index a545cfa..7eb870c 100644
+--- a/base/BUILD.gn
++++ b/base/BUILD.gn
+@@ -1311,7 +1311,7 @@ jumbo_component("base") {
+ 
+     # This is actually a linker script, but it can be added to the link in the
+     # same way as a library.
+-    libs = [ "android/library_loader/anchor_functions.lds" ]
++    libs += [ "android/library_loader/anchor_functions.lds" ]
+   }
+ 
+   # Chromeos.
+-- 
+2.17.1
+
