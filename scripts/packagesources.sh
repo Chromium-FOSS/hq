@@ -87,6 +87,9 @@ find -type l -print0 | while IFS= read -r -d $'\0' symlink; do
 done
 rm -rf .cipd
 
+## kill NDK, upstream r16 should be OK
+rm -rf src/third_party/android_ndk
+
 ## pack
 cd ..
 tar cfJ chromium-$RELEASE.tar.xz chromium/
