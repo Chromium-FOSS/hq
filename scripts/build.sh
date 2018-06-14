@@ -57,6 +57,8 @@ cd src
 #tools/gn/bootstrap/bootstrap.py -s --no-clean
 ## Then just use it
 #out/Release/gn
+## or even better, move it to src/buildtools/linux64/gn
+## gets automatically found there
 
 ## Important step 1/2
 gn gen "--args=android_default_version_code=\"${VER_CODE}\" android_default_version_name=\"$RELEASE\" override_build_date=\"$BDATE\" target_cpu=\"$ARCH\" $GN_ARGS" "$OUTPUT"
