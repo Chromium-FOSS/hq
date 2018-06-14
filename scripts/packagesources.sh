@@ -44,13 +44,15 @@ target_os = ["android"]
 target_os_only = "true"
 EOL
 gclient sync --nohooks > sync.log
+mkdir -p src/logs
+mv sync.log src/logs/
 cd src
 git submodule foreach 'git config -f $toplevel/.git/config submodule.$name.ignore all'
 git config --add remote.origin.fetch '+refs/tags/*:refs/tags/*'
 git config diff.ignoreSubmodules all
 
 ## get the required release tag
-gclient sync --nohooks --with_branch_heads -r $RELEASE --jobs 32 > sync_release.log
+gclient sync --nohooks --with_branch_heads -r $RELEASE --jobs 32 > logs/sync_release.log
 
 ## should run `build/install-build-deps-android.sh`, if on supported ubuntu or debian
 ## they say Arch equivalent for the Linux analogue of `build/install-build-deps.sh` is
@@ -63,7 +65,7 @@ gclient sync --nohooks --with_branch_heads -r $RELEASE --jobs 32 > sync_release.
 ## runhooks
 ## have to accept the play services license?
 ## Do you accept the license for version 11.2.0 of the Google Play services client library? [y/n]:
-echo n | gclient runhooks > runhooks.log
+echo n | gclient runhooks > logs/runhooks.log
 
 ## for some reason, libsync is not checked out
 git clone https://chromium.googlesource.com/aosp/platform/system/core/libsync.git third_party/libsync/src
