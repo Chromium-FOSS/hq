@@ -90,6 +90,12 @@ rm -rf .cipd
 ## kill NDK, upstream r16 should be OK
 rm -rf src/third_party/android_ndk
 
+## rm out dir
+rm -rf src/out
+
+## save release version
+echo "$RELEASE" > src/CFOSSRELEASE
+
 ## pack
 cd ..
 tar cfJ chromium-$RELEASE.tar.xz chromium/
