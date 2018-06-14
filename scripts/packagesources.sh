@@ -74,7 +74,7 @@ git clone https://chromium.googlesource.com/aosp/platform/system/core/libsync.gi
 cd ..
 find -name .git | xargs rm -rf
 ## and gitignore
-find . -type f -name .gitignore -exec rm {} \;
+find . -type f -name .gitignore -exec rm -f {} \;
 
 ## can't immediately remove cipd files, they are symlinked all over the src
 ## @nvasya solution
