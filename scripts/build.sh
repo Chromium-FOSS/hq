@@ -3,6 +3,7 @@
 ## some predefined stuff for now
 VER_CODE="42"
 ARCH="arm64"
+## You can get a list of all of the other build targets from GN by running "gn ls out/Default"
 NINJA_TARGET="chrome_modern_public_apk"
 
 ## define standard Android Tools locations
