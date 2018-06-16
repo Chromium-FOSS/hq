@@ -30,14 +30,13 @@ else
     echo "python version is <3"
 fi
 
-## it may be possible to use bundled
-#DEPOT_TOOLS="$PWD/src/third_party/depot_tools"
-export PATH="$PATH:`pwd`/depot_tools"
+## use bundled depot tools
+export PATH="$PATH:`pwd`/src/third_party/depot_tools"
 
 ## create output directory
 mkdir -p "$OUTPUT"
 if [ -e src/out ]; then
-        rm -rf src/out
+	rm -rf src/out
 fi
 ln -s "$PWD/out" src/out
 
