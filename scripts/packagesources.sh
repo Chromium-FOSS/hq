@@ -99,6 +99,8 @@ rm -rf src/third_party/android_tools/sdk/tools
 rm -rf src/third_party/android_tools/sdk/platform-tools
 rm -rf src/third_party/android_tools/sdk/platforms
 rm -rf src/third_party/android_tools/sdk/build-tools
+## kill SDK sources
+rm -rf src/third_party/android_tools/sdk/sources
 ## kill emulator, don't need
 rm -rf src/third_party/android_sdk/public/emulator
 rm -rf src/third_party/android_tools/sdk/emulator
