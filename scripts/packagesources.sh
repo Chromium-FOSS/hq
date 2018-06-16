@@ -89,7 +89,17 @@ mv .gclient_entries src/CFOSSlogs/gclient_entries
 
 ## kill NDK, upstream r16 should be OK
 rm -rf src/third_party/android_ndk
-## kill emulator, probably don't need
+## kill parts of SDK, will use standard
+rm -rf src/third_party/android_sdk/public/tools
+rm -rf src/third_party/android_sdk/public/platform-tools
+rm -rf src/third_party/android_sdk/public/platforms
+rm -rf src/third_party/android_sdk/public/build-tools
+## one more SDK(?!)
+rm -rf src/third_party/android_tools/sdk/tools
+rm -rf src/third_party/android_tools/sdk/platform-tools
+rm -rf src/third_party/android_tools/sdk/platforms
+rm -rf src/third_party/android_tools/sdk/build-tools
+## kill emulator, don't need
 rm -rf src/third_party/android_sdk/public/emulator
 rm -rf src/third_party/android_tools/sdk/emulator
 ## kill WebKit/LayoutTests

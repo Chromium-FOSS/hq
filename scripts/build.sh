@@ -9,15 +9,25 @@ NINJA_TARGET="chrome_modern_public_apk"
 ## define standard Android Tools locations
 export ANDROID_NDK=/opt/ndk-r16b
 export NDK=$ANDROID_NDK
-#export ANDROID_HOME=/opt/android-sdk
+export ANDROID_HOME=/opt/android-sdk
 
 
 ## Generated vars
 RELEASE=$(cat src/CFOSSRELEASE)
 OUTPUT="out/Release_${RELEASE}_${ARCH}"
 
-## replace NDK with local one
+## symlink to local NDK
 ln -s $NDK src/third_party/android_ndk
+## SDK parts
+ln -s $ANDROID_HOME/tools src/third_party/android_sdk/public/tools
+ln -s $ANDROID_HOME/platform-tools src/third_party/android_sdk/public/platform-tools
+ln -s $ANDROID_HOME/platforms src/third_party/android_sdk/public/platforms
+ln -s $ANDROID_HOME/build-tools src/third_party/android_sdk/public/build-tools
+## once more
+ln -s $ANDROID_HOME/tools src/third_party/android_tools/sdk/tools
+ln -s $ANDROID_HOME/platform-tools src/third_party/android_tools/sdk/platform-tools
+ln -s $ANDROID_HOME/platforms src/third_party/android_tools/sdk/platforms
+ln -s $ANDROID_HOME/build-tools src/third_party/android_tools/sdk/build-tools
 
 ## their tools require python 2
 ## use virtualenv to provide it
