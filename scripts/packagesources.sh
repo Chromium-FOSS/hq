@@ -14,11 +14,11 @@ export PATH="$PATH:`pwd`/depot_tools"
 ## use virtualenv to provide it
 ret=`python -c 'import sys; print("%i" % (sys.hexversion<0x03000000))'`
 if [ $ret -eq 0 ]; then
-    echo "we require python version <3"
+    echo "We require python version <3"
 	virtualenv2 venv
 	source venv/bin/activate
 else 
-    echo "python version is <3"
+    echo "Python version is <3"
 fi
 
 ## checkout source
@@ -44,15 +44,15 @@ target_os = ["android"]
 target_os_only = "true"
 EOL
 gclient sync --nohooks > sync.log
-mkdir -p src/logs
-mv sync.log src/logs/
+mkdir -p src/CFOSSlogs
+mv sync.log src/CFOSSlogs/
 cd src
 git submodule foreach 'git config -f $toplevel/.git/config submodule.$name.ignore all'
 git config --add remote.origin.fetch '+refs/tags/*:refs/tags/*'
 git config diff.ignoreSubmodules all
 
 ## get the required release tag
-gclient sync --nohooks --with_branch_heads -r $RELEASE --jobs 32 > logs/sync_release.log
+gclient sync --nohooks --with_branch_heads -r $RELEASE --jobs 32 > CFOSSlogs/sync_release.log
 
 ## should run `build/install-build-deps-android.sh`, if on supported ubuntu or debian
 ## they say Arch equivalent for the Linux analogue of `build/install-build-deps.sh` is
@@ -65,13 +65,37 @@ gclient sync --nohooks --with_branch_heads -r $RELEASE --jobs 32 > logs/sync_rel
 ## runhooks
 ## have to accept the play services license?
 ## Do you accept the license for version 11.2.0 of the Google Play services client library? [y/n]:
-echo n | gclient runhooks > logs/runhooks.log
+echo n | gclient runhooks > CFOSSlogs/runhooks.log
 
 ## for some reason, libsync is not checked out
 git clone https://chromium.googlesource.com/aosp/platform/system/core/libsync.git third_party/libsync/src
 
-## remove git files
+## save release version
+echo "$RELEASE" > CFOSSRELEASE
+
+## up to chromium
 cd ..
+
+#############
+###CLEANUP###
+#############
+
+## kill depot_tools, will use bundled during build
+rm -rf depot_tools
+
+## gclient stuff
+rm .gclient
+mv .gclient_entries src/CFOSSlogs/gclient_entries
+
+## kill NDK, upstream r16 should be OK
+rm -rf src/third_party/android_ndk
+## kill emulator, probably don't need
+rm -rf src/third_party/android_sdk/public/emulator
+rm -rf src/third_party/android_tools/sdk/emulator
+## kill WebKit/LayoutTests
+rm -rf src/third_party/WebKit/LayoutTests
+
+## remove git files
 find -name .git | xargs rm -rf
 ## and gitignore
 find . -type f -name .gitignore -exec rm -f {} \;
@@ -87,14 +111,9 @@ find -type l -print0 | while IFS= read -r -d $'\0' symlink; do
 done
 rm -rf .cipd
 
-## kill NDK, upstream r16 should be OK
-rm -rf src/third_party/android_ndk
 
 ## rm out dir
 rm -rf src/out
-
-## save release version
-echo "$RELEASE" > src/CFOSSRELEASE
 
 ## pack
 cd ..
