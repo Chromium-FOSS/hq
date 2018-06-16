@@ -104,8 +104,12 @@ rm -rf src/third_party/android_tools/sdk/sources
 ## kill emulator, don't need
 rm -rf src/third_party/android_sdk/public/emulator
 rm -rf src/third_party/android_tools/sdk/emulator
-## kill WebKit/LayoutTests
+## kill heavy WebKit stuff
 rm -rf src/third_party/WebKit/LayoutTests
+rm -rf src/third_party/WebKit/PerformanceTests
+
+# remove unsafe symlinks
+rm -f src/third_party/mesa/src/src/gallium/state_trackers/d3d1x/w32api
 
 ## remove git files
 find -name .git | xargs rm -rf
