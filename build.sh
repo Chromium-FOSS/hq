@@ -1,33 +1,31 @@
 #!/bin/bash
 
-## some predefined stuff for now
-VER_CODE="42"
-ARCH="arm64"
+VER_CODE="$1"
+ARCH="$2"
+NINJA_TARGET="$3"
 ## You can get a list of all of the other build targets from GN by running "gn ls out/Default"
-NINJA_TARGET="chrome_modern_public_apk"
 
 ## define standard Android Tools locations
-export ANDROID_NDK=/opt/ndk-r16b
+#export ANDROID_NDK=/opt/ndk-r16b
 export NDK=$ANDROID_NDK
-export ANDROID_HOME=/opt/android-sdk
-
+#export ANDROID_HOME=/opt/android-sdk
 
 ## Generated vars
-RELEASE=$(cat src/CFOSSRELEASE)
+RELEASE=$(cat CFOSSRELEASE)
 OUTPUT="out/Release_${RELEASE}_${ARCH}"
 
 ## symlink to local NDK
-ln -s $NDK src/third_party/android_ndk
+ln -s $NDK third_party/android_ndk
 ## SDK parts
-ln -s $ANDROID_HOME/tools src/third_party/android_sdk/public/tools
-ln -s $ANDROID_HOME/platform-tools src/third_party/android_sdk/public/platform-tools
-ln -s $ANDROID_HOME/platforms src/third_party/android_sdk/public/platforms
-ln -s $ANDROID_HOME/build-tools src/third_party/android_sdk/public/build-tools
+ln -s $ANDROID_HOME/tools third_party/android_sdk/public/tools
+ln -s $ANDROID_HOME/platform-tools third_party/android_sdk/public/platform-tools
+ln -s $ANDROID_HOME/platforms third_party/android_sdk/public/platforms
+ln -s $ANDROID_HOME/build-tools third_party/android_sdk/public/build-tools
 ## once more
-ln -s $ANDROID_HOME/tools src/third_party/android_tools/sdk/tools
-ln -s $ANDROID_HOME/platform-tools src/third_party/android_tools/sdk/platform-tools
-ln -s $ANDROID_HOME/platforms src/third_party/android_tools/sdk/platforms
-ln -s $ANDROID_HOME/build-tools src/third_party/android_tools/sdk/build-tools
+ln -s $ANDROID_HOME/tools third_party/android_tools/sdk/tools
+ln -s $ANDROID_HOME/platform-tools third_party/android_tools/sdk/platform-tools
+ln -s $ANDROID_HOME/platforms third_party/android_tools/sdk/platforms
+ln -s $ANDROID_HOME/build-tools third_party/android_tools/sdk/build-tools
 
 ## their tools require python 2
 ## use virtualenv to provide it
@@ -41,14 +39,7 @@ else
 fi
 
 ## use bundled depot tools
-export PATH="$PATH:`pwd`/src/third_party/depot_tools"
-
-## create output directory
-mkdir -p "$OUTPUT"
-if [ -e src/out ]; then
-	rm -rf src/out
-fi
-ln -s "$PWD/out" src/out
+export PATH="$PATH:`pwd`/third_party/depot_tools"
 
 ## Build date, with fix for locale
 ## from base/build_time.cc
@@ -60,8 +51,6 @@ BDATE="$(date +'%b %d %Y') 05:00:00"
 
 ## read all arguments from file, skip comments
 GN_ARGS="$(sed 's~ *#.*$~~' GN_ARGS | grep -v ^$ | tr '\n' ' ')"
-
-cd src
 
 ## It's possible to compile GN like that
 #tools/gn/bootstrap/bootstrap.py -s --no-clean
