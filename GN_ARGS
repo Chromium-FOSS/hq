@@ -24,8 +24,5 @@ proprietary_codecs=true
 
 # no api keys
 use_official_google_api_keys=false
-google_api_key="no"
-google_default_client_id="no"
-google_default_client_secret="no"
 
 use_sysroot=false
