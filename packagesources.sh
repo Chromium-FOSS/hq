@@ -109,6 +109,8 @@ rm -rf src/third_party/WebKit/LayoutTests
 rm -rf src/third_party/WebKit/PerformanceTests
 ## heavy files
 rm -rf src/chrome/test/data/vr/webvr_info/samples/media/textures
+## VR SDK
+rm -rf src/third_party/gvr-android-sdk
 
 # remove unsafe symlinks
 rm -f src/third_party/mesa/src/src/gallium/state_trackers/d3d1x/w32api
