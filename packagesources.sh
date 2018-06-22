@@ -22,7 +22,7 @@ else
 fi
 
 ## checkout source
-## directly using fetch would checkout nacl, which we don't really need
+## directly using fetch would checkout nacl
 ## maybe also "'checkout_libaom': False,"
 ## To see what fetch does, run it with "-n"
 ## original command
@@ -87,6 +87,7 @@ rm -rf depot_tools
 rm .gclient
 mv .gclient_entries src/CFOSSlogs/gclient_entries
 
+##### prebuilts to be symlinked
 ## kill NDK, upstream r16 should be OK
 rm -rf src/third_party/android_ndk
 ## kill parts of SDK, will use standard
@@ -99,20 +100,52 @@ rm -rf src/third_party/android_tools/sdk/tools
 rm -rf src/third_party/android_tools/sdk/platform-tools
 rm -rf src/third_party/android_tools/sdk/platforms
 rm -rf src/third_party/android_tools/sdk/build-tools
-## kill SDK sources
-rm -rf src/third_party/android_tools/sdk/sources
+
+##### other prebuilts
 ## kill emulator, don't need
 rm -rf src/third_party/android_sdk/public/emulator
 rm -rf src/third_party/android_tools/sdk/emulator
+## VR SDK
+rm -rf src/third_party/gvr-android-sdk
+## more GCM stuff
+rm -rf src/third_party/android_sdk/public/extras/google/gcm
+rm -rf src/third_party/cacheinvalidation/src/example-app-build
+rm -rf src/third_party/android_tools/sdk/extras/google/gcm
+## kill Clang and LLVM prebuilts
+rm -rf src/third_party/llvm-build
+## gn can be rebuilt
+rm -rf src/buildtools/linux64
+## binutils
+rm -rf src/third_party/binutils
+## nodejs to be reassembled 
+rm -rf src/third_party/node/linux
+rm -rf src/third_party/node/node_modules
+rm src/third_party/node/node_modules.tar.gz
+## unused blobs
+rm -rf src/tools/luci-go
+rm -rf src/components/zucchini/testdata
+rm -rf src/v8/test/fuzzer/wasm_corpus
+rm -rf src/tools/traffic_annotation
+rm -rf src/buildtools/android/doclava
+rm src/buildtools/android/doclava.tar.gz
+
+##### random heavy files
+## kill SDK sources
+rm -rf src/third_party/android_tools/sdk/sources
 ## kill heavy WebKit stuff
 rm -rf src/third_party/WebKit/LayoutTests
 rm -rf src/third_party/WebKit/PerformanceTests
 ## heavy files
 rm -rf src/chrome/test/data/vr/webvr_info/samples/media/textures
-## VR SDK
-rm -rf src/third_party/gvr-android-sdk
+## more random unused files
+rm -rf src/tools/perf/contrib/leak_detection
+rm -rf src/third_party/deqp
+rm -rf src/ios
+rm -rf src/native_client_sdk
+## kill exe for Windows
+find . -iname "*.exe" -exec rm {} \;
 
-# remove unsafe symlinks
+## remove unsafe symlinks
 rm -f src/third_party/mesa/src/src/gallium/state_trackers/d3d1x/w32api
 
 ## remove git files
@@ -130,7 +163,6 @@ find -type l -print0 | while IFS= read -r -d $'\0' symlink; do
   fi
 done
 rm -rf .cipd
-
 
 ## rm out dir
 rm -rf src/out
