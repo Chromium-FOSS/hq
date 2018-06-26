@@ -1,0 +1,25 @@
+From 103faecd56d7605552187fb77a11399c0d447ce4 Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:15:11 +0200
+Subject: [PATCH 11/21] [CF][UNGOOGLE] kill update checks
+
+---
+ .../java/src/org/chromium/chrome/browser/omaha/OmahaBase.java   | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/omaha/OmahaBase.java b/chrome/android/java/src/org/chromium/chrome/browser/omaha/OmahaBase.java
+index 5dbc611029..dbafcdbead 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/omaha/OmahaBase.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/omaha/OmahaBase.java
+@@ -132,7 +132,7 @@ public class OmahaBase {
+ 
+     /** See {@link #sIsDisabled}. */
+     static boolean isDisabled() {
+-        return sIsDisabled;
++        return true;
+     }
+ 
+     /**
+-- 
+2.17.1
+

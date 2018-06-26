@@ -1,0 +1,49 @@
+From 2c58d88d42b37cb4341617c56754bf3842ff1f46 Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:14:36 +0200
+Subject: [PATCH 10/21] [CF][GMS] disable notifications(don't work)
+
+---
+ chrome/android/java/res/xml/site_settings_preferences.xml     | 3 ++-
+ .../chromium/chrome/browser/firstrun/FirstRunActivity.java    | 4 ++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/chrome/android/java/res/xml/site_settings_preferences.xml b/chrome/android/java/res/xml/site_settings_preferences.xml
+index afb425bb97..3f691e69fb 100644
+--- a/chrome/android/java/res/xml/site_settings_preferences.xml
++++ b/chrome/android/java/res/xml/site_settings_preferences.xml
+@@ -30,7 +30,8 @@
+     <!-- Notifications -->
+     <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
+         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+-        android:key="notifications" />
++        android:key="notifications"
++        android:enabled="false"/>
+     <!-- JavaScript -->
+     <org.chromium.chrome.browser.preferences.website.SiteSettingsPreference
+         android:fragment="org.chromium.chrome.browser.preferences.website.SingleCategoryPreferences"
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
+index 6f1baadc4c..491e034441 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
+@@ -21,6 +21,7 @@ import org.chromium.chrome.R;
+ import org.chromium.chrome.browser.customtabs.CustomTabActivity;
+ import org.chromium.chrome.browser.metrics.UmaUtils;
+ import org.chromium.chrome.browser.net.spdyproxy.DataReductionProxySettings;
++import org.chromium.chrome.browser.preferences.PrefServiceBridge;
+ import org.chromium.chrome.browser.preferences.datareduction.DataReductionPromoUtils;
+ import org.chromium.chrome.browser.preferences.datareduction.DataReductionProxyUma;
+ import org.chromium.chrome.browser.search_engines.TemplateUrlService;
+@@ -139,6 +140,9 @@ public class FirstRunActivity extends FirstRunActivityBase implements FirstRunPa
+ 
+         boolean notifyAdapter = false;
+         // An optional Data Saver page.
++
++        PrefServiceBridge.getInstance().setNotificationsEnabled(false);
++
+         if (mFreProperties.getBoolean(SHOW_DATA_REDUCTION_PAGE)) {
+             mPages.add(new DataReductionProxyFirstRunFragment.Page());
+             mFreProgressStates.add(FRE_PROGRESS_DATA_SAVER_SHOWN);
+-- 
+2.17.1
+

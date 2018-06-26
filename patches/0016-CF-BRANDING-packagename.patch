@@ -1,0 +1,25 @@
+From 0b48acccd89b2151f1d3b9676cc24875c3ad1d08 Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:18:36 +0200
+Subject: [PATCH 16/21] [CF][BRANDING] packagename
+
+---
+ chrome/android/BUILD.gn | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
+index 556b04bb7a..9ffcbb8aed 100644
+--- a/chrome/android/BUILD.gn
++++ b/chrome/android/BUILD.gn
+@@ -22,7 +22,7 @@ import("channel.gni")
+ import("java_sources.gni")
+ import("static_initializers.gni")
+ 
+-manifest_package = "org.chromium.chrome"
++manifest_package = "org.unobtainium.chrome"
+ 
+ chrome_public_jinja_variables = default_chrome_public_jinja_variables +
+                                 [ "manifest_package=$manifest_package" ]
+-- 
+2.17.1
+

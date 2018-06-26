@@ -1,0 +1,152 @@
+From 96b5745dff37a484ae8012a5ae0a350b1a731d22 Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:15:43 +0200
+Subject: [PATCH 12/21] [CF][UNGOOGLE] kill dataproxy(doesn't work)
+
+---
+ chrome/android/java/res/xml/main_preferences.xml   |  5 -----
+ .../chromium/chrome/browser/ChromeActivity.java    |  6 ++----
+ .../chrome/browser/firstrun/FirstRunActivity.java  |  1 -
+ .../browser/preferences/MainPreferences.java       | 14 --------------
+ .../datareduction/DataReductionPromoUtils.java     |  5 -----
+ 5 files changed, 2 insertions(+), 29 deletions(-)
+
+diff --git a/chrome/android/java/res/xml/main_preferences.xml b/chrome/android/java/res/xml/main_preferences.xml
+index da0edd8ccb..d466f1719a 100644
+--- a/chrome/android/java/res/xml/main_preferences.xml
++++ b/chrome/android/java/res/xml/main_preferences.xml
+@@ -70,11 +70,6 @@
+         android:key="languages"
+         android:order="12"
+         android:title="@string/prefs_languages"/>
+-    <org.chromium.chrome.browser.preferences.ChromeBasePreference
+-        android:fragment="org.chromium.chrome.browser.preferences.datareduction.DataReductionPreferences"
+-        android:key="data_reduction"
+-        android:order="13"
+-        android:title="@string/data_reduction_title"/>
+     <org.chromium.chrome.browser.preferences.ChromeBasePreference
+         android:fragment="org.chromium.chrome.browser.preferences.download.DownloadPreferences"
+         android:key="downloads"
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/ChromeActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/ChromeActivity.java
+index f7b9a5d49d..9ece0f55f6 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/ChromeActivity.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/ChromeActivity.java
+@@ -114,7 +114,6 @@ import org.chromium.chrome.browser.printing.TabPrinter;
+ import org.chromium.chrome.browser.profiles.Profile;
+ import org.chromium.chrome.browser.share.ShareMenuActionHandler;
+ import org.chromium.chrome.browser.snackbar.BottomContainer;
+-import org.chromium.chrome.browser.snackbar.DataReductionPromoSnackbarController;
+ import org.chromium.chrome.browser.snackbar.DataUseSnackbarController;
+ import org.chromium.chrome.browser.snackbar.SnackbarManager;
+ import org.chromium.chrome.browser.snackbar.SnackbarManager.SnackbarManageable;
+@@ -255,7 +254,6 @@ public abstract class ChromeActivity extends AsyncInitializationActivity
+     private SnackbarManager mSnackbarManager;
+     private ModalDialogManager mModalDialogManager;
+     private DataUseSnackbarController mDataUseSnackbarController;
+-    private DataReductionPromoSnackbarController mDataReductionPromoSnackbarController;
+     private AppMenuPropertiesDelegate mAppMenuPropertiesDelegate;
+     private AppMenuHandler mAppMenuHandler;
+     private ToolbarManager mToolbarManager;
+@@ -575,7 +573,7 @@ public abstract class ChromeActivity extends AsyncInitializationActivity
+                         && DataUseTabUIManager.checkAndResetDataUseTrackingEnded(tab)) {
+                     mDataUseSnackbarController.showDataUseTrackingEndedBar();
+                 }
+-
++                /*
+                 // Only alert about data savings once the first paint has happened. It doesn't make
+                 // sense to show a snackbar about savings when nothing has been displayed yet.
+                 if (DataReductionProxySettings.getInstance().isSnackbarPromoAllowed(tab.getUrl())) {
+@@ -587,7 +585,7 @@ public abstract class ChromeActivity extends AsyncInitializationActivity
+                     mDataReductionPromoSnackbarController.maybeShowDataReductionPromoSnackbar(
+                             DataReductionProxySettings.getInstance()
+                                     .getTotalHttpContentLengthSaved());
+-                }
++                }*/
+             }
+ 
+             @Override
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
+index 491e034441..4677c31a79 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
+@@ -144,7 +144,6 @@ public class FirstRunActivity extends FirstRunActivityBase implements FirstRunPa
+         PrefServiceBridge.getInstance().setNotificationsEnabled(false);
+ 
+         if (mFreProperties.getBoolean(SHOW_DATA_REDUCTION_PAGE)) {
+-            mPages.add(new DataReductionProxyFirstRunFragment.Page());
+             mFreProgressStates.add(FRE_PROGRESS_DATA_SAVER_SHOWN);
+             notifyAdapter = true;
+         }
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/preferences/MainPreferences.java b/chrome/android/java/src/org/chromium/chrome/browser/preferences/MainPreferences.java
+index 4470899705..c8fdd61d96 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/preferences/MainPreferences.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/preferences/MainPreferences.java
+@@ -41,7 +41,6 @@ public class MainPreferences extends PreferenceFragment
+     public static final String PREF_SAVED_PASSWORDS = "saved_passwords";
+     public static final String PREF_CONTEXTUAL_SUGGESTIONS = "contextual_suggestions";
+     public static final String PREF_HOMEPAGE = "homepage";
+-    public static final String PREF_DATA_REDUCTION = "data_reduction";
+     public static final String PREF_NOTIFICATIONS = "notifications";
+     public static final String PREF_LANGUAGES = "languages";
+     public static final String PREF_DOWNLOADS = "downloads";
+@@ -98,7 +97,6 @@ public class MainPreferences extends PreferenceFragment
+         setManagedPreferenceDelegateForPreference(PREF_SEARCH_ENGINE);
+         setManagedPreferenceDelegateForPreference(PREF_AUTOFILL_SETTINGS);
+         setManagedPreferenceDelegateForPreference(PREF_SAVED_PASSWORDS);
+-        setManagedPreferenceDelegateForPreference(PREF_DATA_REDUCTION);
+ 
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+             // If we are on Android O+ the Notifications preference should lead to the Android
+@@ -186,10 +184,6 @@ public class MainPreferences extends PreferenceFragment
+         } else {
+             removePreferenceIfPresent(PREF_CONTEXTUAL_SUGGESTIONS);
+         }
+-
+-        ChromeBasePreference dataReduction =
+-                (ChromeBasePreference) findPreference(PREF_DATA_REDUCTION);
+-        dataReduction.setSummary(DataReductionPreferences.generateSummary(getResources()));
+     }
+ 
+     private Preference addPreferenceIfAbsent(String key) {
+@@ -260,9 +254,6 @@ public class MainPreferences extends PreferenceFragment
+                 if (PREF_SAVED_PASSWORDS.equals(preference.getKey())) {
+                     return PrefServiceBridge.getInstance().isRememberPasswordsManaged();
+                 }
+-                if (PREF_DATA_REDUCTION.equals(preference.getKey())) {
+-                    return DataReductionProxySettings.getInstance().isDataReductionProxyManaged();
+-                }
+                 if (PREF_SEARCH_ENGINE.equals(preference.getKey())) {
+                     return TemplateUrlService.getInstance().isDefaultSearchManaged();
+                 }
+@@ -280,11 +271,6 @@ public class MainPreferences extends PreferenceFragment
+                     return prefs.isRememberPasswordsManaged()
+                             && !prefs.isRememberPasswordsEnabled();
+                 }
+-                if (PREF_DATA_REDUCTION.equals(preference.getKey())) {
+-                    DataReductionProxySettings settings = DataReductionProxySettings.getInstance();
+-                    return settings.isDataReductionProxyManaged()
+-                            && !settings.isDataReductionProxyEnabled();
+-                }
+                 if (PREF_SEARCH_ENGINE.equals(preference.getKey())) {
+                     return TemplateUrlService.getInstance().isDefaultSearchManaged();
+                 }
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/preferences/datareduction/DataReductionPromoUtils.java b/chrome/android/java/src/org/chromium/chrome/browser/preferences/datareduction/DataReductionPromoUtils.java
+index bd42c899b2..02caadd38c 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/preferences/datareduction/DataReductionPromoUtils.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/preferences/datareduction/DataReductionPromoUtils.java
+@@ -63,12 +63,7 @@ public class DataReductionPromoUtils {
+      * @return Whether the any data reduction proxy promotion has been displayed.
+      */
+     public static boolean canShowPromos() {
+-        if (!DataReductionProxySettings.getInstance().isDataReductionProxyPromoAllowed()) {
+             return false;
+-        }
+-        if (DataReductionProxySettings.getInstance().isDataReductionProxyManaged()) return false;
+-        if (DataReductionProxySettings.getInstance().isDataReductionProxyEnabled()) return false;
+-        return true;
+     }
+ 
+     /**
+-- 
+2.17.1
+

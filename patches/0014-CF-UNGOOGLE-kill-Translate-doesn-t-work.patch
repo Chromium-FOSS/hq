@@ -1,0 +1,38 @@
+From a55d8139781262b27c0f7484fa1b0fe53425e0ba Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:16:43 +0200
+Subject: [PATCH 14/21] [CF][UNGOOGLE] kill Translate(doesn't work)
+
+---
+ chrome/android/java/res/xml/languages_preferences.xml          | 3 ++-
+ .../org/chromium/chrome/browser/firstrun/FirstRunActivity.java | 1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/chrome/android/java/res/xml/languages_preferences.xml b/chrome/android/java/res/xml/languages_preferences.xml
+index 64e48b61ec..a60029a8bd 100644
+--- a/chrome/android/java/res/xml/languages_preferences.xml
++++ b/chrome/android/java/res/xml/languages_preferences.xml
+@@ -14,6 +14,7 @@
+     <org.chromium.chrome.browser.preferences.ChromeSwitchPreference
+         android:key="translate_switch"
+         android:summaryOn="@string/languages_offer_translate_switch"
+-        android:summaryOff="@string/languages_offer_translate_switch" />
++        android:summaryOff="@string/languages_offer_translate_switch" 
++        android:enabled="false" />
+ 
+ </PreferenceScreen>
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
+index 4677c31a79..27e6a00a2c 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
+@@ -142,6 +142,7 @@ public class FirstRunActivity extends FirstRunActivityBase implements FirstRunPa
+         // An optional Data Saver page.
+ 
+         PrefServiceBridge.getInstance().setNotificationsEnabled(false);
++        PrefServiceBridge.getInstance().setTranslateEnabled(false);
+ 
+         if (mFreProperties.getBoolean(SHOW_DATA_REDUCTION_PAGE)) {
+             mFreProgressStates.add(FRE_PROGRESS_DATA_SAVER_SHOWN);
+-- 
+2.17.1
+

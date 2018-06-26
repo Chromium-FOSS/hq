@@ -1,0 +1,303 @@
+From 9a3a727a32aef2db7c197cdcfc5587d58fcec16b Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:25:06 +0200
+Subject: [PATCH 21/21] [CF] Readme and build scripts
+
+---
+ .gitignore                  |  4 +++
+ GN_ARGS                     | 35 ++++++++++++++++++
+ LICENSE => LICENSE.chromium |  0
+ LICENSE.unobtainium         | 29 +++++++++++++++
+ README.md                   | 70 +++++++++++++++++++++++++++++++++++-
+ build.sh                    | 71 +++++++++++++++++++++++++++++++++++++
+ prebuild.sh                 | 28 +++++++++++++++
+ 7 files changed, 236 insertions(+), 1 deletion(-)
+ create mode 100644 .gitignore
+ create mode 100644 GN_ARGS
+ rename LICENSE => LICENSE.chromium (100%)
+ create mode 100644 LICENSE.unobtainium
+ create mode 100755 build.sh
+ create mode 100755 prebuild.sh
+
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000000..a0d4d6dd88
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,4 @@
++out/
++venv/
++*.pyc
++buildtools/linux64/gn
+diff --git a/GN_ARGS b/GN_ARGS
+new file mode 100644
+index 0000000000..04edbd9b31
+--- /dev/null
++++ b/GN_ARGS
+@@ -0,0 +1,35 @@
++target_os="android"
++
++# turning off symbols will make debugging almost impossible, but the build will be much faster. Otherwise, =1
++symbol_level=0
++
++# more debug switches
++remove_webcore_debug_symbols=true
++is_debug=false
++is_official_build=true
++
++# otherwise a red frame will appear
++android_channel="stable"
++
++# disable features
++enable_nacl=false
++enable_vr=false
++enable_widevine=false
++enable_google_now=false
++enable_remoting=false
++
++# codec settings
++ffmpeg_branding="Chrome"
++proprietary_codecs=true
++
++# no api keys
++use_official_google_api_keys=false
++
++use_sysroot=false
++
++# clang
++clang_base_path="/usr"
++clang_use_chrome_plugins=false
++
++# binutils
++linux_use_bundled_binutils=false
+diff --git a/LICENSE b/LICENSE.chromium
+similarity index 100%
+rename from LICENSE
+rename to LICENSE.chromium
+diff --git a/LICENSE.unobtainium b/LICENSE.unobtainium
+new file mode 100644
+index 0000000000..441b1cec64
+--- /dev/null
++++ b/LICENSE.unobtainium
+@@ -0,0 +1,29 @@
++BSD 3-Clause License
++
++Copyright (c) 2018, Ruslan Boitsov
++All rights reserved.
++
++Redistribution and use in source and binary forms, with or without
++modification, are permitted provided that the following conditions are met:
++
++* Redistributions of source code must retain the above copyright notice, this
++  list of conditions and the following disclaimer.
++
++* Redistributions in binary form must reproduce the above copyright notice,
++  this list of conditions and the following disclaimer in the documentation
++  and/or other materials provided with the distribution.
++
++* Neither the name of the copyright holder nor the names of its
++  contributors may be used to endorse or promote products derived from
++  this software without specific prior written permission.
++
++THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
++FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
++CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+diff --git a/README.md b/README.md
+index 865f9a7bad..307401333d 100644
+--- a/README.md
++++ b/README.md
+@@ -1,4 +1,72 @@
+-# ![Logo](chrome/app/theme/chromium/product_logo_64.png) Chromium
++[![Donate](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/thermatk/)
++
++# ![Logo](chrome/app/theme/chromium/product_logo_64.png) Unobtainium
++
++Unobtainium is a libre fork of Chromium. Do not expect it to be ungoogled, it's unblobbed!
++
++## Changes:
++
++*Standard set of changes for F-Droid, removing proprietary blobs:*
++- GMS libraries are removed
++- VR SDK is removed
++- Some visual changes to hide disabled functionality
++- New package name, icon and app name
++
++*Paranoid FLOSS set, removing free software prebuilts:*
++- Custom SDK and NDK are removed, will use provided standard ones
++- Custom Clang and LLVM are removed, will use provided system ones(require 7.0)
++- Custom binutils are removed, will use system ones
++- Custom NodeJS and modules are removed, redownload from upstream
++- Prebuilt GN is removed, rebuild from source at compile time
++- A lot of other unused binaries are removed
++
++## Building
++
++**Important:**
++1. You need the [Android NDK, Revision 16b](https://developer.android.com/ndk/downloads/older_releases) and a preconfigured Android SDK with some build and platform tools.
++	- It will fail and tell you what you lack
++
++2. Clone.
++
++4. Install required build dependencies:
++      - If you're on a supported Debian/Ubuntu, this should work:
++
++      ```
++      build/install-build-deps-android.sh
++      ```
++      - On other distros you'll have to find out what to install yourself.
++      	- This may be enough on Arch:
++      	
++      	```
++      	sudo pacman -S --needed python perl gcc gcc-libs bison flex gperf pkgconfig nss alsa-lib glib2 gtk2 nspr freetype2 cairo dbus libgnome-keyring bsdiff python-pexpect xorg-server-xvfb lighttpd
++      	```
++5. You also need a nightly build of LLVM and Clang.
++	- On Debian/Ubuntu [this might help](https://apt.llvm.org/)
++	- On Arch, use AUR or [binary repos](https://github.com/kerberizer/llvm-svn#binary-packages)
++		- clang-svn, llvm-svn, lld-svn
++
++6. Build it:
++      - Execute the following (define stuff in brackets):
++
++      ```
++      export NDK=[PATH_TO_NDK]
++      export ANDROID_HOME=[PATH_TO_SDK]
++      ./prebuild.sh
++      ./build.sh [version-code] [arch] [ninja-target]
++      ```
++      - where [version-code] must be a growing number, [arch] can be x86, arm or arm64 and [ninja-target] can be:
++      	- *monochrome_public_apk*: Contains both WebView and Unobtainium, sdk24+
++      	- *chrome_modern_public_apk*: Unobtainium, sdk21+
++      	- *chrome_public_apk*: Unobtainium, sdk16+
++      	- *system_webview_apk*: WebView, sdk21+
++
++7. Don't forget to sign the apk.
++
++## Contributors & Credits
++*Due to the rebasing-on-top approach, most commits and their signatures won't survive directly*
++- [csagan5](https://github.com/csagan5)
++
++# Chromium
+ 
+ Chromium is an open-source browser project that aims to build a safer, faster,
+ and more stable way for all users to experience the web.
+diff --git a/build.sh b/build.sh
+new file mode 100755
+index 0000000000..12c9c210c0
+--- /dev/null
++++ b/build.sh
+@@ -0,0 +1,71 @@
++#!/bin/bash
++
++## This script also uses a couple of tricks from
++## Bromite build script for F-Droid
++## by csagan5
++## and separate contributions by csagan5
++
++if [ ! $# -eq 3 ]; then
++    echo "Usage: build.sh version-code arch ninja-target"
++    exit 1
++fi
++
++VER_CODE="$1"
++ARCH="$2"
++NINJA_TARGET="$3"
++## You can get a list of all of the other build targets from GN by running "gn ls out/Default"
++
++
++## their tools require python 2
++## use virtualenv to provide it
++ret=`python -c 'import sys; print("%i" % (sys.hexversion<0x03000000))'`
++if [ $ret -eq 0 ]; then
++    echo "we require python version <3"
++	virtualenv2 venv
++	source venv/bin/activate
++else 
++    echo "python version is <3"
++fi
++
++## stop at first error
++set -e
++
++## Generated vars
++RELEASE=$(< CFOSSRELEASE)
++## re-use output directory for the intermediate built objects
++OUTPUT="out/Release_${ARCH}"
++
++## use bundled depot tools
++export PATH="$PATH:$PWD/third_party/depot_tools"
++
++## Build date, with fix for locale
++## from base/build_time.cc
++# BUILD_DATE is exactly "Mmm DD YYYY HH:MM:SS".
++# See //build/write_build_date_header.py. "HH:MM:SS" is normally expected to
++# be "05:00:00"
++export LC_ALL=en_US.utf-8
++BDATE="$(date +'%b %d %Y') 05:00:00"
++
++## read all arguments from file, skip comments
++GN_ARGS="$(sed 's~ *#.*$~~' GN_ARGS | grep -v ^$ | tr '\n' ' ')"
++
++## Compile GN
++if [ ! -f buildtools/linux64/gn ]; then
++    echo "Need to compile gn"
++	tools/gn/bootstrap/bootstrap.py -s --no-clean
++	mkdir -p buildtools/linux64
++	mv out/Release/gn buildtools/linux64/gn
++	echo "Finished gn compilation"
++fi
++
++## Important step 1/2
++gn gen "--args=android_default_version_code=\"${VER_CODE}\" android_default_version_name=\"$RELEASE\" override_build_date=\"$BDATE\" target_cpu=\"$ARCH\" $GN_ARGS" "$OUTPUT"
++
++echo "gn gen is done!"
++
++## concurrency level for ninja
++CONC=$(nproc)
++let CONC+=1
++
++## Important step 2/2
++ninja -j$CONC -C "$OUTPUT" ${NINJA_TARGET}
+diff --git a/prebuild.sh b/prebuild.sh
+new file mode 100755
+index 0000000000..6bf611dc8e
+--- /dev/null
++++ b/prebuild.sh
+@@ -0,0 +1,28 @@
++#!/bin/bash
++
++## define standard Android Tools locations
++#export NDK=/opt/ndk-r16b
++#export ANDROID_HOME=/opt/android-sdk
++
++## symlink to local NDK/SDK
++if [ ! -L third_party/android_ndk ]; then
++	## NDK
++	ln -s $NDK third_party/android_ndk
++	## SDK parts
++	ln -s $ANDROID_HOME/tools third_party/android_sdk/public/tools
++	ln -s $ANDROID_HOME/platform-tools third_party/android_sdk/public/platform-tools
++	ln -s $ANDROID_HOME/platforms third_party/android_sdk/public/platforms
++	ln -s $ANDROID_HOME/build-tools third_party/android_sdk/public/build-tools
++	## once more
++	ln -s $ANDROID_HOME/tools third_party/android_tools/sdk/tools
++	ln -s $ANDROID_HOME/platform-tools third_party/android_tools/sdk/platform-tools
++	ln -s $ANDROID_HOME/platforms third_party/android_tools/sdk/platforms
++	ln -s $ANDROID_HOME/build-tools third_party/android_tools/sdk/build-tools
++fi
++
++## download NodeJS
++if [ ! -f third_party/node/linux/node-linux-x64.tar.gz ]; then
++    echo "Need to download NodeJS"
++	third_party/node/update_node_binaries
++	third_party/node/update_npm_deps
++fi
+-- 
+2.17.1
+

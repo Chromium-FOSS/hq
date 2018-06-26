@@ -1,0 +1,86 @@
+From 31f051aa21d0b8fd87630766491b5d7647938790 Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:19:01 +0200
+Subject: [PATCH 17/21] [CF][BRANDING] words
+
+---
+ chrome/android/java/res/layout/fre_tosanduma.xml      | 11 ++++++++++-
+ .../java/res_chromium/values/channel_constants.xml    |  6 +++---
+ .../browser/preferences/AboutChromePreferences.java   |  2 +-
+ .../chrome/browser/preferences/MainPreferences.java   |  3 +++
+ 4 files changed, 17 insertions(+), 5 deletions(-)
+
+diff --git a/chrome/android/java/res/layout/fre_tosanduma.xml b/chrome/android/java/res/layout/fre_tosanduma.xml
+index aa2a890df6..8de3536ccb 100644
+--- a/chrome/android/java/res/layout/fre_tosanduma.xml
++++ b/chrome/android/java/res/layout/fre_tosanduma.xml
+@@ -25,7 +25,7 @@
+ 
+             <TextView
+                 android:id="@+id/title"
+-                android:text="@string/fre_welcome"
++                android:text="Unobtainium"
+                 style="@style/FreTitle" />
+             
+             <!-- The orientation of this view is changed dynamically to give a nicer layout when in
+@@ -65,6 +65,15 @@
+                         android:textAppearance="@style/BlackBodyDefault"
+                         android:visibility="gone" />
+ 
++                    <TextView
++                        android:layout_width="wrap_content"
++                        android:layout_height="wrap_content"
++                        android:layout_marginBottom="@dimen/fre_vertical_spacing"
++                        android:gravity="center"
++                        android:lineSpacingMultiplier="1.4"
++                        android:textAppearance="@style/BlackBodyDefault"
++                        android:text="Unobtainium is a libre fork of Chromium. Do not expect it to be ungoogled, it's unblobbed!" />
++
+                     <CheckBox
+                         android:id="@+id/send_report_checkbox"
+                         android:layout_width="wrap_content"
+diff --git a/chrome/android/java/res_chromium/values/channel_constants.xml b/chrome/android/java/res_chromium/values/channel_constants.xml
+index b7b3bfc296..5699848083 100644
+--- a/chrome/android/java/res_chromium/values/channel_constants.xml
++++ b/chrome/android/java/res_chromium/values/channel_constants.xml
+@@ -5,7 +5,7 @@
+ 
+ <resources xmlns:android="http://schemas.android.com/apk/res/android">
+     <!-- The application name displayed to the user. -->
+-    <string name="app_name" translatable="false">Chromium</string>
+-    <string name="bookmark_widget_title" translatable="false">Chromium bookmarks</string>
+-    <string name="search_widget_title" translatable="false">Chromium search</string>
++    <string name="app_name" translatable="false">Unobtainium</string>
++    <string name="bookmark_widget_title" translatable="false">Unobtainium bookmarks</string>
++    <string name="search_widget_title" translatable="false">Unobtainium search</string>
+ </resources>
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/preferences/AboutChromePreferences.java b/chrome/android/java/src/org/chromium/chrome/browser/preferences/AboutChromePreferences.java
+index 20b5935d7a..ffb1f631e3 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/preferences/AboutChromePreferences.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/preferences/AboutChromePreferences.java
+@@ -34,7 +34,7 @@ public class AboutChromePreferences extends PreferenceFragment {
+     @Override
+     public void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+-        getActivity().setTitle(R.string.prefs_about_chrome);
++        getActivity().setTitle(getString(R.string.prefs_about_chrome).replace("Chrome","Unobtainium(Chromium)"));
+         PreferenceUtils.addPreferencesFromResource(this, R.xml.about_chrome_preferences);
+ 
+         // TODO(crbug.com/635567): Fix this properly.
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/preferences/MainPreferences.java b/chrome/android/java/src/org/chromium/chrome/browser/preferences/MainPreferences.java
+index c8fdd61d96..fbf46a225c 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/preferences/MainPreferences.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/preferences/MainPreferences.java
+@@ -98,6 +98,9 @@ public class MainPreferences extends PreferenceFragment
+         setManagedPreferenceDelegateForPreference(PREF_AUTOFILL_SETTINGS);
+         setManagedPreferenceDelegateForPreference(PREF_SAVED_PASSWORDS);
+ 
++        Preference about = findPreference("about_chrome");
++        about.setTitle("About Unobtainium");
++
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+             // If we are on Android O+ the Notifications preference should lead to the Android
+             // Settings notifications page, not to Chrome's notifications settings page.
+-- 
+2.17.1
+

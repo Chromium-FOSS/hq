@@ -1,0 +1,25 @@
+From 997fd92a63e15c9f83fb4f39d3ac0bcbe75fa644 Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:20:47 +0200
+Subject: [PATCH 20/21] [CF][NODEJS] fix upstream fetcher
+
+---
+ third_party/node/update_node_binaries | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/third_party/node/update_node_binaries b/third_party/node/update_node_binaries
+index 8619780ece..1b0cb119dc 100755
+--- a/third_party/node/update_node_binaries
++++ b/third_party/node/update_node_binaries
+@@ -84,7 +84,7 @@ update_win() {
+ 
+ # First download checksum file.
+ rm -f "SHASUMS256.txt"
+-wget "https://nodejs.org/dist/latest-v8.x/SHASUMS256.txt"
++wget "https://nodejs.org/dist/$NODE_VERSION/SHASUMS256.txt"
+ 
+ update_unix "darwin-x64" "mac"
+ update_unix "linux-x64" "linux"
+-- 
+2.17.1
+

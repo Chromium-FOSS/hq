@@ -1,0 +1,108 @@
+From 61cfab0fc9ea8e3990b3365981e279aa54ac7e2b Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:05:50 +0200
+Subject: [PATCH 04/21] [CF][GMS] kill Nearby
+
+---
+ chrome/android/java/AndroidManifest.xml                   | 4 ----
+ .../java/src/org/chromium/chrome/browser/AppHooks.java    | 8 --------
+ .../chromium/chrome/browser/physicalweb/PhysicalWeb.java  | 4 ++++
+ chrome/android/java_sources.gni                           | 5 -----
+ 4 files changed, 4 insertions(+), 17 deletions(-)
+
+diff --git a/chrome/android/java/AndroidManifest.xml b/chrome/android/java/AndroidManifest.xml
+index ed099f7f74..e030293c93 100644
+--- a/chrome/android/java/AndroidManifest.xml
++++ b/chrome/android/java/AndroidManifest.xml
+@@ -751,10 +751,6 @@ by a child template that "extends" this file.
+             {{ self.supports_vr() }}
+         </activity>
+ 
+-        <!-- Service for handling Nearby Messages -->
+-        <service android:name="org.chromium.chrome.browser.physicalweb.NearbyMessageIntentService"
+-            android:exported="false" />
+-
+         <!-- Activities for Browser Actions -->
+         <activity android:name="org.chromium.chrome.browser.browseractions.BrowserActionActivity"
+             android:theme="@style/FullscreenTransparentActivityTheme"
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/AppHooks.java b/chrome/android/java/src/org/chromium/chrome/browser/AppHooks.java
+index 59e7639674..15a2a919e3 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/AppHooks.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/AppHooks.java
+@@ -37,7 +37,6 @@ import org.chromium.chrome.browser.omaha.RequestGenerator;
+ import org.chromium.chrome.browser.partnerbookmarks.PartnerBookmark;
+ import org.chromium.chrome.browser.partnerbookmarks.PartnerBookmarksProviderIterator;
+ import org.chromium.chrome.browser.partnercustomizations.PartnerBrowserCustomizations;
+-import org.chromium.chrome.browser.physicalweb.PhysicalWebBleClient;
+ import org.chromium.chrome.browser.policy.PolicyAuditor;
+ import org.chromium.chrome.browser.preferences.LocationSettings;
+ import org.chromium.chrome.browser.rlz.RevenueStats;
+@@ -225,13 +224,6 @@ public abstract class AppHooks {
+         return null;
+     }
+ 
+-    /**
+-     * @return A new {@link PhysicalWebBleClient} instance.
+-     */
+-    public PhysicalWebBleClient createPhysicalWebBleClient() {
+-        return new PhysicalWebBleClient();
+-    }
+-
+     /**
+      * @return a new {@link ProcessInitializationHandler} instance.
+      */
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/physicalweb/PhysicalWeb.java b/chrome/android/java/src/org/chromium/chrome/browser/physicalweb/PhysicalWeb.java
+index 26a0237b82..fd0ef7f0a1 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/physicalweb/PhysicalWeb.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/physicalweb/PhysicalWeb.java
+@@ -97,6 +97,7 @@ public class PhysicalWeb {
+     public static void onChromeStart() {
+         // In the case that the user has disabled our flag and restarted, this is a minimal code
+         // path to disable our subscription to Nearby.
++        /*
+         if (!featureIsEnabled()) {
+             if (!SysUtils.isLowEndDevice()) {
+                 new NearbyBackgroundSubscription(NearbySubscription.UNSUBSCRIBE).run();
+@@ -124,6 +125,7 @@ public class PhysicalWeb {
+                 return null;
+             }
+         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
++        */
+     }
+ 
+     /**
+@@ -176,6 +178,7 @@ public class PhysicalWeb {
+      * Examines the environment in order to decide whether we should begin or end a scan.
+      */
+     public static void updateScans() {
++        /*
+         if (SysUtils.isLowEndDevice()) return;
+ 
+         LocationUtils locationUtils = LocationUtils.getInstance();
+@@ -187,5 +190,6 @@ public class PhysicalWeb {
+         }
+ 
+         new NearbyBackgroundSubscription(NearbySubscription.SUBSCRIBE).run();
++        */
+     }
+ }
+diff --git a/chrome/android/java_sources.gni b/chrome/android/java_sources.gni
+index 507af6c205..d2d82d479e 100644
+--- a/chrome/android/java_sources.gni
++++ b/chrome/android/java_sources.gni
+@@ -938,12 +938,7 @@ chrome_java_sources = [
+   "java/src/org/chromium/chrome/browser/photo_picker/PickerCategoryView.java",
+   "java/src/org/chromium/chrome/browser/physicalweb/HttpRequest.java",
+   "java/src/org/chromium/chrome/browser/physicalweb/JsonObjectHttpRequest.java",
+-  "java/src/org/chromium/chrome/browser/physicalweb/NearbyBackgroundSubscription.java",
+-  "java/src/org/chromium/chrome/browser/physicalweb/NearbyForegroundSubscription.java",
+-  "java/src/org/chromium/chrome/browser/physicalweb/NearbyMessageIntentService.java",
+-  "java/src/org/chromium/chrome/browser/physicalweb/NearbySubscription.java",
+   "java/src/org/chromium/chrome/browser/physicalweb/PhysicalWeb.java",
+-  "java/src/org/chromium/chrome/browser/physicalweb/PhysicalWebBleClient.java",
+   "java/src/org/chromium/chrome/browser/physicalweb/PhysicalWebUma.java",
+   "java/src/org/chromium/chrome/browser/physicalweb/PwsClient.java",
+   "java/src/org/chromium/chrome/browser/physicalweb/PwsClientImpl.java",
+-- 
+2.17.1
+

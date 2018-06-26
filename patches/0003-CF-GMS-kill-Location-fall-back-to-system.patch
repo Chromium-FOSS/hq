@@ -1,0 +1,51 @@
+From 1dccb8dfda6d20ab4e0fe7503fc1417877f0ae64 Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:05:17 +0200
+Subject: [PATCH 03/21] [CF][GMS] kill Location, fall back to system
+
+---
+ device/geolocation/BUILD.gn                            |  1 -
+ .../device/geolocation/LocationProviderFactory.java    | 10 ++--------
+ 2 files changed, 2 insertions(+), 9 deletions(-)
+
+diff --git a/device/geolocation/BUILD.gn b/device/geolocation/BUILD.gn
+index 51ee4fcd03..35fdeba466 100644
+--- a/device/geolocation/BUILD.gn
++++ b/device/geolocation/BUILD.gn
+@@ -121,7 +121,6 @@ if (is_android) {
+       "android/java/src/org/chromium/device/geolocation/LocationProviderAdapter.java",
+       "android/java/src/org/chromium/device/geolocation/LocationProviderAndroid.java",
+       "android/java/src/org/chromium/device/geolocation/LocationProviderFactory.java",
+-      "android/java/src/org/chromium/device/geolocation/LocationProviderGmsCore.java",
+     ]
+ 
+     deps = [
+diff --git a/device/geolocation/android/java/src/org/chromium/device/geolocation/LocationProviderFactory.java b/device/geolocation/android/java/src/org/chromium/device/geolocation/LocationProviderFactory.java
+index 40b12fffcf..75afa0a7c1 100644
+--- a/device/geolocation/android/java/src/org/chromium/device/geolocation/LocationProviderFactory.java
++++ b/device/geolocation/android/java/src/org/chromium/device/geolocation/LocationProviderFactory.java
+@@ -44,19 +44,13 @@ public class LocationProviderFactory {
+     }
+ 
+     public static void useGmsCoreLocationProvider() {
+-        sUseGmsCoreLocationProvider = true;
++        sUseGmsCoreLocationProvider = false;
+     }
+ 
+     public static LocationProvider create() {
+         if (sProviderImpl != null) return sProviderImpl;
+ 
+-        if (sUseGmsCoreLocationProvider
+-                && LocationProviderGmsCore.isGooglePlayServicesAvailable(
+-                           ContextUtils.getApplicationContext())) {
+-            sProviderImpl = new LocationProviderGmsCore(ContextUtils.getApplicationContext());
+-        } else {
+-            sProviderImpl = new LocationProviderAndroid();
+-        }
++        sProviderImpl = new LocationProviderAndroid();
+         return sProviderImpl;
+     }
+ }
+-- 
+2.17.1
+

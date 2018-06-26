@@ -1,0 +1,742 @@
+From 3f17e7297a885fb09e53d8a8fa4b9fa2803de93c Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:13:02 +0200
+Subject: [PATCH 07/21] [CF][GMS] kill Cast
+
+---
+ chrome/android/java/AndroidManifest.xml       |  21 --
+ .../remote/AbstractMediaRouteController.java  |   3 -
+ .../media/remote/CastNotificationControl.java |  11 -
+ .../remote/DefaultMediaRouteController.java   |  19 +-
+ .../remote/RemoteMediaPlayerController.java   |   5 -
+ .../media/router/ChromeMediaRouter.java       | 221 +-----------------
+ .../ChromeMediaRouterDialogController.java    |  70 +-----
+ .../media/router/MediaControllerBridge.java   |  11 -
+ chrome/android/java_sources.gni               |  31 ---
+ 9 files changed, 10 insertions(+), 382 deletions(-)
+
+diff --git a/chrome/android/java/AndroidManifest.xml b/chrome/android/java/AndroidManifest.xml
+index 2122ee2225..a3e09f3d78 100644
+--- a/chrome/android/java/AndroidManifest.xml
++++ b/chrome/android/java/AndroidManifest.xml
+@@ -687,16 +687,6 @@ by a child template that "extends" this file.
+         </activity>
+         {% endfor %}
+ 
+-        <activity android:name="org.chromium.chrome.browser.media.remote.ExpandedControllerActivity"
+-            android:theme="@style/MainTheme"
+-            android:label="Chrome.ExpandedControllerActivity"
+-            android:hardwareAccelerated="true"
+-            android:launchMode="singleTask"
+-            android:noHistory="true"
+-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|mcc|mnc|screenLayout|smallestScreenSize"
+-            android:excludeFromRecents="true">
+-        </activity>
+-
+         <!-- This activity is used to restart the main Chrome process.  Should never be exported. -->
+         <activity android:name="org.chromium.chrome.browser.BrowserRestartActivity"
+             android:launchMode="singleInstance"
+@@ -1075,17 +1065,6 @@ android:value="true" />
+ 
+         {% block extra_application_definitions %}
+ 
+-        <!-- Media route controllers to use for remote playback (cast).
+-             This is here, rather than in code, since it varies between upstream and downstream,
+-             yet we need this list of classes in the notification service, which belongs upstream
+-             and doesn't run the downstream startup code. The Cast code will, for each media element,
+-             choose the first MediaRouteController that can play it, so the order of the list can be important.
+-             The most specific MediaRouteControllers should be listed first, followed by more generic ones.
+-             The downstream manifest replaces this block, and hence replaces the list of media route
+-             controllers with its own list. -->
+-        <meta-data android:name="org.chromium.content.browser.REMOTE_MEDIA_PLAYERS"
+-            android:value="org.chromium.chrome.browser.media.remote.DefaultMediaRouteController"/>
+-
+         {% endblock %}
+     </application>
+ </manifest>
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/media/remote/AbstractMediaRouteController.java b/chrome/android/java/src/org/chromium/chrome/browser/media/remote/AbstractMediaRouteController.java
+index c895e0358a..656eea93f5 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/media/remote/AbstractMediaRouteController.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/media/remote/AbstractMediaRouteController.java
+@@ -15,8 +15,6 @@ import android.support.v7.media.MediaRouteSelector;
+ import android.support.v7.media.MediaRouter;
+ import android.support.v7.media.MediaRouter.RouteInfo;
+ 
+-import com.google.android.gms.cast.CastMediaControlIntent;
+-
+ import org.chromium.base.ContextUtils;
+ import org.chromium.base.Log;
+ import org.chromium.base.VisibleForTesting;
+@@ -591,7 +589,6 @@ public abstract class AbstractMediaRouteController implements MediaRouteControll
+                     clearItemState();
+                     break;
+                 case ERROR:
+-                    sendErrorToListeners(CastMediaControlIntent.ERROR_CODE_REQUEST_FAILED);
+                     release();
+                     break;
+                 default:
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/media/remote/CastNotificationControl.java b/chrome/android/java/src/org/chromium/chrome/browser/media/remote/CastNotificationControl.java
+index e1ac3f173c..79f60f5d43 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/media/remote/CastNotificationControl.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/media/remote/CastNotificationControl.java
+@@ -121,17 +121,6 @@ public class CastNotificationControl implements MediaRouteController.UiListener,
+         // it correctly. Also add code to restore it when Chrome is resumed.
+         mAudioManager.requestAudioFocus(this, AudioManager.USE_DEFAULT_STREAM_TYPE,
+                 AudioManager.AUDIOFOCUS_GAIN);
+-        Intent contentIntent = new Intent(mContext, ExpandedControllerActivity.class);
+-        contentIntent.putExtra(MediaNotificationUma.INTENT_EXTRA_NAME,
+-                MediaNotificationUma.SOURCE_MEDIA_FLING);
+-        mNotificationBuilder = new MediaNotificationInfo.Builder()
+-                .setPaused(false)
+-                .setPrivate(false)
+-                .setNotificationSmallIcon(R.drawable.ic_notification_media_route)
+-                .setContentIntent(contentIntent)
+-                .setDefaultNotificationLargeIcon(R.drawable.cast_playing_square)
+-                .setId(R.id.remote_notification)
+-                .setListener(this);
+ 
+         updateNotificationBuilderIfPosterIsGoodEnough();
+         mState = initialState;
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/media/remote/DefaultMediaRouteController.java b/chrome/android/java/src/org/chromium/chrome/browser/media/remote/DefaultMediaRouteController.java
+index 85e408db74..3122ca7b19 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/media/remote/DefaultMediaRouteController.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/media/remote/DefaultMediaRouteController.java
+@@ -20,8 +20,6 @@ import android.support.v7.media.MediaRouter;
+ import android.support.v7.media.MediaRouter.RouteInfo;
+ import android.support.v7.media.MediaSessionStatus;
+ 
+-import com.google.android.gms.cast.CastMediaControlIntent;
+-
+ import org.chromium.base.ApplicationState;
+ import org.chromium.base.ApplicationStatus;
+ import org.chromium.base.Log;
+@@ -166,12 +164,11 @@ public class DefaultMediaRouteController extends AbstractMediaRouteController {
+ 
+     @Override
+     public MediaRouteSelector buildMediaRouteSelector() {
+-        return new MediaRouteSelector.Builder().addControlCategory(
+-                CastMediaControlIntent.categoryForRemotePlayback(getCastReceiverId())).build();
++        return new MediaRouteSelector.Builder().build();
+     }
+ 
+     protected String getCastReceiverId() {
+-        return CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID;
++        return "";
+     }
+ 
+     @Override
+@@ -281,12 +278,6 @@ public class DefaultMediaRouteController extends AbstractMediaRouteController {
+             ResultBundleHandler resultBundleHandler) {
+         Intent intent = new Intent(MediaControlIntent.ACTION_START_SESSION);
+         intent.addCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK);
+-
+-        intent.putExtra(CastMediaControlIntent.EXTRA_CAST_STOP_APPLICATION_WHEN_SESSION_ENDS, true);
+-        intent.putExtra(MediaControlIntent.EXTRA_SESSION_STATUS_UPDATE_RECEIVER,
+-                mSessionStatusUpdateIntent);
+-        intent.putExtra(CastMediaControlIntent.EXTRA_CAST_APPLICATION_ID, getCastReceiverId());
+-        intent.putExtra(CastMediaControlIntent.EXTRA_CAST_RELAUNCH_APPLICATION, relaunch);
+         if (sessionId != null) intent.putExtra(MediaControlIntent.EXTRA_SESSION_ID, sessionId);
+ 
+         addIntentExtraForDebugLogging(intent);
+@@ -295,9 +286,6 @@ public class DefaultMediaRouteController extends AbstractMediaRouteController {
+ 
+     @RemovableInRelease
+     private void addIntentExtraForDebugLogging(Intent intent) {
+-        if (Log.isLoggable(TAG, Log.DEBUG)) {
+-            intent.putExtra(CastMediaControlIntent.EXTRA_DEBUG_LOGGING_ENABLED, true);
+-        }
+     }
+ 
+     private void getSessionStatus(String sessionId) {
+@@ -728,9 +716,6 @@ public class DefaultMediaRouteController extends AbstractMediaRouteController {
+             public void onError(String message, Bundle data) {
+                 logControlRequestError(intent, message, data);
+                 int errorCode = 0;
+-                if (data != null) {
+-                    errorCode = data.getInt(CastMediaControlIntent.EXTRA_ERROR_CODE);
+-                }
+ 
+                 sendErrorToListeners(errorCode);
+ 
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/media/remote/RemoteMediaPlayerController.java b/chrome/android/java/src/org/chromium/chrome/browser/media/remote/RemoteMediaPlayerController.java
+index 3fb5d57368..a92f73b89a 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/media/remote/RemoteMediaPlayerController.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/media/remote/RemoteMediaPlayerController.java
+@@ -18,8 +18,6 @@ import android.support.v7.app.MediaRouteChooserDialogFragment;
+ import android.support.v7.app.MediaRouteControllerDialogFragment;
+ import android.support.v7.app.MediaRouteDialogFactory;
+ 
+-import com.google.android.gms.cast.CastMediaControlIntent;
+-
+ import org.chromium.base.ApplicationStatus;
+ import org.chromium.base.Log;
+ import org.chromium.base.ThreadUtils;
+@@ -283,9 +281,6 @@ public class RemoteMediaPlayerController implements MediaRouteController.UiListe
+ 
+     @Override
+     public void onError(int error, String errorMessage) {
+-        if (error == CastMediaControlIntent.ERROR_CODE_SESSION_START_FAILED) {
+-            showMessageToast(errorMessage);
+-        }
+     }
+ 
+     @Override
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/media/router/ChromeMediaRouter.java b/chrome/android/java/src/org/chromium/chrome/browser/media/router/ChromeMediaRouter.java
+index 92bdcbfed6..d0f2949b06 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/media/router/ChromeMediaRouter.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/media/router/ChromeMediaRouter.java
+@@ -13,10 +13,6 @@ import org.chromium.base.SysUtils;
+ import org.chromium.base.VisibleForTesting;
+ import org.chromium.base.annotations.CalledByNative;
+ import org.chromium.base.annotations.JNINamespace;
+-import org.chromium.chrome.browser.ChromeFeatureList;
+-import org.chromium.chrome.browser.media.router.caf.CafMediaRouteProvider;
+-import org.chromium.chrome.browser.media.router.cast.CastMediaRouteProvider;
+-import org.chromium.chrome.browser.media.router.cast.remoting.RemotingMediaRouteProvider;
+ 
+ import java.util.ArrayList;
+ import java.util.HashMap;
+@@ -30,76 +26,13 @@ import javax.annotation.Nullable;
+  * Owns a list of {@link MediaRouteProvider} implementations and dispatches native calls to them.
+  */
+ @JNINamespace("media_router")
+-public class ChromeMediaRouter implements MediaRouteManager {
++public class ChromeMediaRouter {
+ 
+     private static final String TAG = "MediaRouter";
+ 
+-    private static MediaRouteProvider.Factory sRouteProviderFactory =
+-            new MediaRouteProvider.Factory() {
+-                @Override
+-                public void addProviders(MediaRouteManager manager) {
+-                    // Bypass feature check in tests as ChromeFeatureList might not be initialized
+-                    // yet.
+-                    if (ChromeFeatureList.isInitialized()
+-                            && ChromeFeatureList.isEnabled(
+-                                       ChromeFeatureList.CAF_MEDIA_ROUTER_IMPL)) {
+-                        MediaRouteProvider cafProvider = CafMediaRouteProvider.create(manager);
+-                        manager.addMediaRouteProvider(cafProvider);
+-                    } else {
+-                        MediaRouteProvider castProvider = CastMediaRouteProvider.create(manager);
+-                        manager.addMediaRouteProvider(castProvider);
+-
+-                        MediaRouteProvider remotingProvider =
+-                                RemotingMediaRouteProvider.create(manager);
+-                        manager.addMediaRouteProvider(remotingProvider);
+-                    }
+-                }
+-            };
+-
+     // The pointer to the native object. Can be null during tests, or when the
+     // native object has been destroyed.
+     private long mNativeMediaRouterAndroidBridge;
+-    private final List<MediaRouteProvider> mRouteProviders = new ArrayList<MediaRouteProvider>();
+-    private final Map<String, MediaRouteProvider> mRouteIdsToProviders =
+-            new HashMap<String, MediaRouteProvider>();
+-    private final Map<String, Map<MediaRouteProvider, List<MediaSink>>> mSinksPerSourcePerProvider =
+-            new HashMap<String, Map<MediaRouteProvider, List<MediaSink>>>();
+-    private final Map<String, List<MediaSink>> mSinksPerSource =
+-            new HashMap<String, List<MediaSink>>();
+-    private static boolean sAndroidMediaRouterSetForTest = false;
+-    private static MediaRouter sAndroidMediaRouterForTest = null;
+-
+-    @VisibleForTesting
+-    public static void setAndroidMediaRouterForTest(MediaRouter router) {
+-        sAndroidMediaRouterSetForTest = true;
+-        sAndroidMediaRouterForTest = router;
+-    }
+-
+-    @VisibleForTesting
+-    public static void setRouteProviderFactoryForTest(MediaRouteProvider.Factory factory) {
+-        sRouteProviderFactory = factory;
+-    }
+-
+-    @VisibleForTesting
+-    protected List<MediaRouteProvider> getRouteProvidersForTest() {
+-        return mRouteProviders;
+-    }
+-
+-    @VisibleForTesting
+-    protected Map<String, MediaRouteProvider> getRouteIdsToProvidersForTest() {
+-        return mRouteIdsToProviders;
+-    }
+-
+-    @VisibleForTesting
+-    protected Map<String, Map<MediaRouteProvider, List<MediaSink>>>
+-            getSinksPerSourcePerProviderForTest() {
+-        return mSinksPerSourcePerProvider;
+-    }
+-
+-    @VisibleForTesting
+-    protected Map<String, List<MediaSink>> getSinksPerSourceForTest() {
+-        return mSinksPerSource;
+-    }
+ 
+     /**
+      * Obtains the {@link MediaRouter} instance given the application context.
+@@ -107,7 +40,6 @@ public class ChromeMediaRouter implements MediaRouteManager {
+      */
+     @Nullable
+     public static MediaRouter getAndroidMediaRouter() {
+-        if (sAndroidMediaRouterSetForTest) return sAndroidMediaRouterForTest;
+ 
+         // Some manufacturers have an implementation that causes StrictMode
+         // violations. See https://crbug.com/818325.
+@@ -123,82 +55,6 @@ public class ChromeMediaRouter implements MediaRouteManager {
+         }
+     }
+ 
+-    @Override
+-    public void addMediaRouteProvider(MediaRouteProvider provider) {
+-        mRouteProviders.add(provider);
+-    }
+-
+-    @Override
+-    public void onSinksReceived(
+-            String sourceId, MediaRouteProvider provider, List<MediaSink> sinks) {
+-        if (!mSinksPerSourcePerProvider.containsKey(sourceId)) {
+-            mSinksPerSourcePerProvider.put(
+-                    sourceId, new HashMap<MediaRouteProvider, List<MediaSink>>());
+-        }
+-
+-        // Replace the sinks found by this provider with the new list.
+-        Map<MediaRouteProvider, List<MediaSink>> sinksPerProvider =
+-                mSinksPerSourcePerProvider.get(sourceId);
+-        sinksPerProvider.put(provider, sinks);
+-
+-        List<MediaSink> allSinksPerSource = new ArrayList<MediaSink>();
+-        for (List<MediaSink> s : sinksPerProvider.values()) allSinksPerSource.addAll(s);
+-
+-        mSinksPerSource.put(sourceId, allSinksPerSource);
+-        if (mNativeMediaRouterAndroidBridge != 0) {
+-            nativeOnSinksReceived(
+-                    mNativeMediaRouterAndroidBridge, sourceId, allSinksPerSource.size());
+-        }
+-    }
+-
+-    @Override
+-    public void onRouteCreated(
+-            String mediaRouteId, String mediaSinkId, int requestId, MediaRouteProvider provider,
+-            boolean wasLaunched) {
+-        mRouteIdsToProviders.put(mediaRouteId, provider);
+-        if (mNativeMediaRouterAndroidBridge != 0) {
+-            nativeOnRouteCreated(mNativeMediaRouterAndroidBridge, mediaRouteId, mediaSinkId,
+-                    requestId, wasLaunched);
+-        }
+-    }
+-
+-    @Override
+-    public void onRouteRequestError(String errorText, int requestId) {
+-        if (mNativeMediaRouterAndroidBridge != 0) {
+-            nativeOnRouteRequestError(mNativeMediaRouterAndroidBridge, errorText, requestId);
+-        }
+-    }
+-
+-    @Override
+-    public void onRouteClosed(String mediaRouteId) {
+-        if (mNativeMediaRouterAndroidBridge != 0) {
+-            nativeOnRouteClosed(mNativeMediaRouterAndroidBridge, mediaRouteId);
+-        }
+-        mRouteIdsToProviders.remove(mediaRouteId);
+-    }
+-
+-    @Override
+-    public void onRouteClosedWithError(String mediaRouteId, String message) {
+-        if (mNativeMediaRouterAndroidBridge != 0) {
+-            nativeOnRouteClosedWithError(mNativeMediaRouterAndroidBridge, mediaRouteId, message);
+-        }
+-        mRouteIdsToProviders.remove(mediaRouteId);
+-    }
+-
+-    @Override
+-    public void onMessageSentResult(boolean success, int callbackId) {
+-        if (mNativeMediaRouterAndroidBridge != 0) {
+-            nativeOnMessageSentResult(mNativeMediaRouterAndroidBridge, success, callbackId);
+-        }
+-    }
+-
+-    @Override
+-    public void onMessage(String mediaRouteId, String message) {
+-        if (mNativeMediaRouterAndroidBridge != 0) {
+-            nativeOnMessage(mNativeMediaRouterAndroidBridge, mediaRouteId, message);
+-        }
+-    }
+-
+     /**
+      * Initializes the media router and its providers.
+      * @param nativeMediaRouterAndroidBridge the handler for the native counterpart of this instance
+@@ -206,9 +62,7 @@ public class ChromeMediaRouter implements MediaRouteManager {
+      */
+     @CalledByNative
+     public static ChromeMediaRouter create(long nativeMediaRouterAndroidBridge) {
+-        ChromeMediaRouter router = new ChromeMediaRouter(nativeMediaRouterAndroidBridge);
+-        sRouteProviderFactory.addProviders(router);
+-        return router;
++        return null;
+     }
+ 
+     /**
+@@ -219,14 +73,7 @@ public class ChromeMediaRouter implements MediaRouteManager {
+      */
+     @CalledByNative
+     public boolean startObservingMediaSinks(String sourceId) {
+-        Log.d(TAG, "startObservingMediaSinks: " + sourceId);
+-        if (SysUtils.isLowEndDevice()) return false;
+-
+-        for (MediaRouteProvider provider : mRouteProviders) {
+-            provider.startObservingMediaSinks(sourceId);
+-        }
+-
+-        return true;
++        return false;
+     }
+ 
+     /**
+@@ -236,12 +83,6 @@ public class ChromeMediaRouter implements MediaRouteManager {
+      */
+     @CalledByNative
+     public void stopObservingMediaSinks(String sourceId) {
+-        Log.d(TAG, "stopObservingMediaSinks: " + sourceId);
+-        for (MediaRouteProvider provider : mRouteProviders) {
+-            provider.stopObservingMediaSinks(sourceId);
+-        }
+-        mSinksPerSource.remove(sourceId);
+-        mSinksPerSourcePerProvider.remove(sourceId);
+     }
+ 
+     /**
+@@ -254,7 +95,7 @@ public class ChromeMediaRouter implements MediaRouteManager {
+      */
+     @CalledByNative
+     public String getSinkUrn(String sourceUrn, int index) {
+-        return getSink(sourceUrn, index).getUrn();
++        return "";
+     }
+ 
+     /**
+@@ -267,7 +108,7 @@ public class ChromeMediaRouter implements MediaRouteManager {
+      */
+     @CalledByNative
+     public String getSinkName(String sourceUrn, int index) {
+-        return getSink(sourceUrn, index).getName();
++        return "";
+     }
+ 
+     /**
+@@ -290,15 +131,6 @@ public class ChromeMediaRouter implements MediaRouteManager {
+             int tabId,
+             boolean isIncognito,
+             int requestId) {
+-        MediaRouteProvider provider = getProviderForSource(sourceId);
+-        if (provider == null) {
+-            onRouteRequestError("No provider supports createRoute with source: " + sourceId
+-                                + " and sink: " + sinkId, requestId);
+-            return;
+-        }
+-
+-        provider.createRoute(
+-                sourceId, sinkId, presentationId, origin, tabId, isIncognito, requestId);
+     }
+ 
+     /**
+@@ -318,13 +150,6 @@ public class ChromeMediaRouter implements MediaRouteManager {
+             String origin,
+             int tabId,
+             int requestId) {
+-        MediaRouteProvider provider = getProviderForSource(sourceId);
+-        if (provider == null) {
+-            onRouteRequestError("Route not found.", requestId);
+-            return;
+-        }
+-
+-        provider.joinRoute(sourceId, presentationId, origin, tabId, requestId);
+     }
+ 
+     /**
+@@ -333,10 +158,6 @@ public class ChromeMediaRouter implements MediaRouteManager {
+      */
+     @CalledByNative
+     public void closeRoute(String routeId) {
+-        MediaRouteProvider provider = mRouteIdsToProviders.get(routeId);
+-        if (provider == null) return;
+-
+-        provider.closeRoute(routeId);
+     }
+ 
+     /**
+@@ -345,11 +166,6 @@ public class ChromeMediaRouter implements MediaRouteManager {
+      */
+     @CalledByNative
+     public void detachRoute(String routeId) {
+-        MediaRouteProvider provider = mRouteIdsToProviders.get(routeId);
+-        if (provider == null) return;
+-
+-        provider.detachRoute(routeId);
+-        mRouteIdsToProviders.remove(routeId);
+     }
+ 
+     /**
+@@ -360,13 +176,6 @@ public class ChromeMediaRouter implements MediaRouteManager {
+      */
+     @CalledByNative
+     public void sendStringMessage(String routeId, String message, int callbackId) {
+-        MediaRouteProvider provider = mRouteIdsToProviders.get(routeId);
+-        if (provider == null) {
+-            nativeOnMessageSentResult(mNativeMediaRouterAndroidBridge, false, callbackId);
+-            return;
+-        }
+-
+-        provider.sendStringMessage(routeId, message, callbackId);
+     }
+ 
+     /**
+@@ -377,13 +186,7 @@ public class ChromeMediaRouter implements MediaRouteManager {
+     @Nullable
+     @CalledByNative
+     public MediaControllerBridge getMediaControllerBridge(String routeId) {
+-        MediaRouteProvider provider = mRouteIdsToProviders.get(routeId);
+-        if (provider == null) return null;
+-
+-        MediaController controller = provider.getMediaController(routeId);
+-        if (controller == null) return null;
+-
+-        return new MediaControllerBridge(controller);
++        return null;
+     }
+ 
+     @VisibleForTesting
+@@ -400,18 +203,6 @@ public class ChromeMediaRouter implements MediaRouteManager {
+         mNativeMediaRouterAndroidBridge = 0;
+     }
+ 
+-    private MediaSink getSink(String sourceId, int index) {
+-        assert mSinksPerSource.containsKey(sourceId);
+-        return mSinksPerSource.get(sourceId).get(index);
+-    }
+-
+-    private MediaRouteProvider getProviderForSource(String sourceId) {
+-        for (MediaRouteProvider provider : mRouteProviders) {
+-            if (provider.supportsSource(sourceId)) return provider;
+-        }
+-        return null;
+-    }
+-
+     native void nativeOnSinksReceived(
+             long nativeMediaRouterAndroidBridge, String sourceUrn, int count);
+     native void nativeOnRouteCreated(long nativeMediaRouterAndroidBridge, String mediaRouteId,
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/media/router/ChromeMediaRouterDialogController.java b/chrome/android/java/src/org/chromium/chrome/browser/media/router/ChromeMediaRouterDialogController.java
+index 61f94626e0..fc4bef8645 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/media/router/ChromeMediaRouterDialogController.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/media/router/ChromeMediaRouterDialogController.java
+@@ -10,21 +10,18 @@ import android.support.v7.media.MediaRouteSelector;
+ 
+ import org.chromium.base.annotations.CalledByNative;
+ import org.chromium.base.annotations.JNINamespace;
+-import org.chromium.chrome.browser.media.router.cast.CastMediaSource;
+-import org.chromium.chrome.browser.media.router.cast.remoting.RemotingMediaSource;
+ 
+ /**
+  * Implements the JNI interface called from the C++ Media Router dialog controller implementation
+  * on Android.
+  */
+ @JNINamespace("media_router")
+-public class ChromeMediaRouterDialogController implements MediaRouteDialogDelegate {
++public class ChromeMediaRouterDialogController {
+ 
+     private static final String MEDIA_ROUTE_CONTROLLER_DIALOG_FRAGMENT =
+             "android.support.v7.mediarouter:MediaRouteControllerDialogFragment";
+ 
+     private final long mNativeDialogController;
+-    private MediaRouteDialogManager mDialogManager;
+ 
+     /**
+      * Returns a new initialized {@link ChromeMediaRouterDialogController}.
+@@ -42,26 +39,6 @@ public class ChromeMediaRouterDialogController implements MediaRouteDialogDelega
+      */
+     @CalledByNative
+     public void openRouteChooserDialog(String[] sourceUrns) {
+-        if (isShowingDialog()) return;
+-
+-        MediaSource source = null;
+-        for (String sourceUrn : sourceUrns) {
+-            source = CastMediaSource.from(sourceUrn);
+-            if (source == null) source = RemotingMediaSource.from(sourceUrn);
+-
+-            if (source != null) break;
+-        }
+-
+-        MediaRouteSelector routeSelector = source == null ? null : source.buildRouteSelector();
+-
+-        if (routeSelector == null) {
+-            nativeOnMediaSourceNotSupported(mNativeDialogController);
+-            return;
+-        }
+-
+-        mDialogManager =
+-                new MediaRouteChooserDialogManager(source.getSourceId(), routeSelector, this);
+-        mDialogManager.openDialog();
+     }
+ 
+     /**
+@@ -71,21 +48,6 @@ public class ChromeMediaRouterDialogController implements MediaRouteDialogDelega
+      */
+     @CalledByNative
+     public void openRouteControllerDialog(String sourceUrn, String mediaRouteId) {
+-        if (isShowingDialog()) return;
+-
+-        MediaSource source = CastMediaSource.from(sourceUrn);
+-        if (source == null) source = RemotingMediaSource.from(sourceUrn);
+-
+-        MediaRouteSelector routeSelector = source == null ? null : source.buildRouteSelector();
+-
+-        if (routeSelector == null) {
+-            nativeOnMediaSourceNotSupported(mNativeDialogController);
+-            return;
+-        }
+-
+-        mDialogManager = new MediaRouteControllerDialogManager(
+-                source.getSourceId(), routeSelector, mediaRouteId, this);
+-        mDialogManager.openDialog();
+     }
+ 
+     /**
+@@ -93,10 +55,6 @@ public class ChromeMediaRouterDialogController implements MediaRouteDialogDelega
+      */
+     @CalledByNative
+     public void closeDialog() {
+-        if (!isShowingDialog()) return;
+-
+-        mDialogManager.closeDialog();
+-        mDialogManager = null;
+     }
+ 
+     /**
+@@ -104,31 +62,7 @@ public class ChromeMediaRouterDialogController implements MediaRouteDialogDelega
+      */
+     @CalledByNative
+     public boolean isShowingDialog() {
+-        return mDialogManager != null && mDialogManager.isShowingDialog();
+-    }
+-
+-    @Override
+-    public void onSinkSelected(String sourceUrn, MediaSink sink) {
+-        mDialogManager = null;
+-        nativeOnSinkSelected(mNativeDialogController, sourceUrn, sink.getId());
+-    }
+-
+-    @Override
+-    public void onRouteClosed(String mediaRouteId) {
+-        mDialogManager = null;
+-        nativeOnRouteClosed(mNativeDialogController, mediaRouteId);
+-    }
+-
+-    @Override
+-    public void onDialogCancelled() {
+-        // For MediaRouteControllerDialog this method will be called in case the route is closed
+-        // since it only call onDismiss() and there's no way to distinguish between the two.
+-        // Here we can figure it out: if mDialogManager is null, onRouteClosed() was called and
+-        // there's no need to tell the native controller the dialog has been cancelled.
+-        if (mDialogManager == null) return;
+-
+-        mDialogManager = null;
+-        nativeOnDialogCancelled(mNativeDialogController);
++        return false;
+     }
+ 
+     private ChromeMediaRouterDialogController(long nativeDialogController) {
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/media/router/MediaControllerBridge.java b/chrome/android/java/src/org/chromium/chrome/browser/media/router/MediaControllerBridge.java
+index 3abcd92e94..cb188b0ab3 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/media/router/MediaControllerBridge.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/media/router/MediaControllerBridge.java
+@@ -14,34 +14,23 @@ import org.chromium.base.annotations.JNINamespace;
+  */
+ @JNINamespace("media_router")
+ public class MediaControllerBridge {
+-    private final MediaController mMediaController;
+-
+-    public MediaControllerBridge(MediaController mediaController) {
+-        mMediaController = mediaController;
+-    }
+-
+     @CalledByNative
+     public void play() {
+-        mMediaController.play();
+     }
+ 
+     @CalledByNative
+     public void pause() {
+-        mMediaController.pause();
+     }
+ 
+     @CalledByNative
+     public void setMute(boolean mute) {
+-        mMediaController.setMute(mute);
+     }
+ 
+     @CalledByNative
+     public void setVolume(float volume) {
+-        mMediaController.setVolume(volume);
+     }
+ 
+     @CalledByNative
+     public void seek(long positionInMs) {
+-        mMediaController.seek(positionInMs);
+     }
+ }
+diff --git a/chrome/android/java_sources.gni b/chrome/android/java_sources.gni
+index 6418f7167f..c62ded36c5 100644
+--- a/chrome/android/java_sources.gni
++++ b/chrome/android/java_sources.gni
+@@ -602,7 +602,6 @@ chrome_java_sources = [
+   "java/src/org/chromium/chrome/browser/media/remote/AbstractMediaRouteController.java",
+   "java/src/org/chromium/chrome/browser/media/remote/CastNotificationControl.java",
+   "java/src/org/chromium/chrome/browser/media/remote/DefaultMediaRouteController.java",
+-  "java/src/org/chromium/chrome/browser/media/remote/ExpandedControllerActivity.java",
+   "java/src/org/chromium/chrome/browser/media/remote/FullscreenMediaRouteButton.java",
+   "java/src/org/chromium/chrome/browser/media/remote/MediaRouteChooserDialogFactory.java",
+   "java/src/org/chromium/chrome/browser/media/remote/MediaRouteController.java",
+@@ -611,41 +610,11 @@ chrome_java_sources = [
+   "java/src/org/chromium/chrome/browser/media/remote/RecordCastAction.java",
+   "java/src/org/chromium/chrome/browser/media/remote/RemoteMediaPlayerBridge.java",
+   "java/src/org/chromium/chrome/browser/media/remote/RemoteMediaPlayerController.java",
+-  "java/src/org/chromium/chrome/browser/media/remote/RemoteMediaPlayerWrapper.java",
+   "java/src/org/chromium/chrome/browser/media/remote/RemoteVideoInfo.java",
+   "java/src/org/chromium/chrome/browser/media/remote/PositionExtrapolator.java",
+-  "java/src/org/chromium/chrome/browser/media/router/BaseMediaRouteDialogManager.java",
+   "java/src/org/chromium/chrome/browser/media/router/ChromeMediaRouter.java",
+   "java/src/org/chromium/chrome/browser/media/router/ChromeMediaRouterDialogController.java",
+-  "java/src/org/chromium/chrome/browser/media/router/DiscoveryCallback.java",
+-  "java/src/org/chromium/chrome/browser/media/router/DiscoveryDelegate.java",
+-  "java/src/org/chromium/chrome/browser/media/router/MediaController.java",
+   "java/src/org/chromium/chrome/browser/media/router/MediaControllerBridge.java",
+-  "java/src/org/chromium/chrome/browser/media/router/MediaRoute.java",
+-  "java/src/org/chromium/chrome/browser/media/router/MediaRouteChooserDialogManager.java",
+-  "java/src/org/chromium/chrome/browser/media/router/MediaRouteControllerDialogManager.java",
+-  "java/src/org/chromium/chrome/browser/media/router/MediaRouteDialogDelegate.java",
+-  "java/src/org/chromium/chrome/browser/media/router/MediaRouteDialogManager.java",
+-  "java/src/org/chromium/chrome/browser/media/router/MediaRouteManager.java",
+-  "java/src/org/chromium/chrome/browser/media/router/MediaRouteProvider.java",
+-  "java/src/org/chromium/chrome/browser/media/router/MediaSource.java",
+-  "java/src/org/chromium/chrome/browser/media/router/MediaSink.java",
+-  "java/src/org/chromium/chrome/browser/media/router/caf/CafMediaRouteProvider.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/BaseMediaRouteProvider.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/CastMediaRouteProvider.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/CastMediaSource.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/CastMessageHandler.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/CastRequestIdGenerator.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/CastSession.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/CastSessionImpl.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/CastSessionInfo.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/CastSessionUtil.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/ChromeCastSessionManager.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/ClientRecord.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/CreateRouteRequest.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/remoting/RemotingCastSession.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/remoting/RemotingMediaRouteProvider.java",
+-  "java/src/org/chromium/chrome/browser/media/router/cast/remoting/RemotingMediaSource.java",
+   "java/src/org/chromium/chrome/browser/media/ui/MediaButtonReceiver.java",
+   "java/src/org/chromium/chrome/browser/media/ui/MediaImageCallback.java",
+   "java/src/org/chromium/chrome/browser/media/ui/MediaImageManager.java",
+-- 
+2.17.1
+

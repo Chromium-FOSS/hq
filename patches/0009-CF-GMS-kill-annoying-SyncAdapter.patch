@@ -1,0 +1,54 @@
+From 77ea6250934252b51b2664fa9d66f330cf36708f Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:14:04 +0200
+Subject: [PATCH 09/21] [CF][GMS] kill annoying SyncAdapter
+
+---
+ chrome/android/BUILD.gn                 |  2 --
+ chrome/android/java/AndroidManifest.xml | 10 ----------
+ 2 files changed, 12 deletions(-)
+
+diff --git a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
+index b38f9a419a..556b04bb7a 100644
+--- a/chrome/android/BUILD.gn
++++ b/chrome/android/BUILD.gn
+@@ -767,7 +767,6 @@ jinja_template_resources("chrome_public_apk_template_resources") {
+     "java/res_template/xml/file_paths.xml",
+     "java/res_template/xml/launchershortcuts.xml",
+     "java/res_template/xml/searchable.xml",
+-    "java/res_template/xml/syncadapter.xml",
+   ]
+   res_dir = "java/res_template"
+   variables = chrome_public_jinja_variables
+@@ -778,7 +777,6 @@ jinja_template_resources("chrome_sync_shell_apk_template_resources") {
+     "java/res_template/xml/file_paths.xml",
+     "java/res_template/xml/launchershortcuts.xml",
+     "java/res_template/xml/searchable.xml",
+-    "java/res_template/xml/syncadapter.xml",
+   ]
+   res_dir = "java/res_template"
+   variables = chrome_sync_shell_jinja_variables
+diff --git a/chrome/android/java/AndroidManifest.xml b/chrome/android/java/AndroidManifest.xml
+index a3e09f3d78..b211846430 100644
+--- a/chrome/android/java/AndroidManifest.xml
++++ b/chrome/android/java/AndroidManifest.xml
+@@ -784,16 +784,6 @@ by a child template that "extends" this file.
+             android:exported="true">
+         </provider>
+ 
+-        <!-- Sync adapter for browser invalidation. -->
+-        <service android:name="org.chromium.chrome.browser.invalidation.ChromeBrowserSyncAdapterService"
+-            android:exported="false">
+-            <intent-filter>
+-                <action android:name="android.content.SyncAdapter" />
+-            </intent-filter>
+-            <meta-data android:name="android.content.SyncAdapter"
+-                       android:resource="@xml/syncadapter" />
+-        </service>
+-
+         <!-- Broadcast receiver that will be notified of account changes -->
+         <receiver android:name="org.chromium.chrome.browser.services.AccountsChangedReceiver">
+             <intent-filter>
+-- 
+2.17.1
+

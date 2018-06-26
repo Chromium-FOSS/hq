@@ -1,0 +1,36 @@
+From c8c5a9b5e1fa09e7d94cc210a728563bfaa51a43 Mon Sep 17 00:00:00 2001
+From: thermatk <thermatk@thermatk.com>
+Date: Fri, 22 Jun 2018 17:20:05 +0200
+Subject: [PATCH 19/21] [CF][CLANG] flags to use system clang
+
+Remove "-Wno-ignored-pragma-optimize" added in Chromium Clang, add "-Wno-error=return-std-move" to pass without errors
+---
+ build/config/compiler/BUILD.gn | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index 461e62da2d..7fe637ae11 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -1336,7 +1336,9 @@ config("default_warnings") {
+       "-Wno-unused-parameter",  # Unused function parameters.
+     ]
+   }
+-
++  
++  cflags += [ "-Wno-error=return-std-move" ]
++  
+   if (is_clang) {
+     cflags += [
+       # TODO(thakis): Consider -Wloop-analysis (turns on
+@@ -1390,7 +1392,6 @@ config("default_warnings") {
+ 
+         # Ignore warnings about MSVC optimization pragmas.
+         # TODO(thakis): Only for no_chromium_code? http://crbug.com/505314
+-        "-Wno-ignored-pragma-optimize",
+       ]
+       if (llvm_force_head_revision) {
+         cflags += [
+-- 
+2.17.1
+
