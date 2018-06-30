@@ -76,6 +76,10 @@ echo "$RELEASE" > CFOSSRELEASE
 ## up to chromium
 cd ..
 
+## gclient stuff
+rm .gclient
+mv .gclient_entries src/CFOSSlogs/gclient_entries
+
 #############
 ###CLEANUP###
 #############
@@ -83,19 +87,12 @@ cd ..
 ## kill depot_tools, will use bundled during build
 rm -rf depot_tools
 
-## gclient stuff
-rm .gclient
-mv .gclient_entries src/CFOSSlogs/gclient_entries
-
 ##### prebuilts to be symlinked
 ## kill NDK, upstream r16 should be OK
 rm -rf src/third_party/android_ndk
+## kill unused SDK
+rm -rf src/third_party/android_sdk
 ## kill parts of SDK, will use standard
-rm -rf src/third_party/android_sdk/public/tools
-rm -rf src/third_party/android_sdk/public/platform-tools
-rm -rf src/third_party/android_sdk/public/platforms
-rm -rf src/third_party/android_sdk/public/build-tools
-## one more SDK(?!)
 rm -rf src/third_party/android_tools/sdk/tools
 rm -rf src/third_party/android_tools/sdk/platform-tools
 rm -rf src/third_party/android_tools/sdk/platforms
@@ -103,12 +100,10 @@ rm -rf src/third_party/android_tools/sdk/build-tools
 
 ##### other prebuilts
 ## kill emulator, don't need
-rm -rf src/third_party/android_sdk/public/emulator
 rm -rf src/third_party/android_tools/sdk/emulator
 ## VR SDK
 rm -rf src/third_party/gvr-android-sdk
 ## more GCM stuff
-rm -rf src/third_party/android_sdk/public/extras/google/gcm
 rm -rf src/third_party/cacheinvalidation/src/example-app-build
 rm -rf src/third_party/android_tools/sdk/extras/google/gcm
 ## kill Clang and LLVM prebuilts
@@ -129,9 +124,51 @@ rm -rf src/tools/traffic_annotation
 rm -rf src/buildtools/android/doclava
 rm src/buildtools/android/doclava.tar.gz
 
-##### random heavy files
+##### random heavy files and binaries
 ## kill SDK sources
 rm -rf src/third_party/android_tools/sdk/sources
+## fuzzy stuff
+rm -rf src/third_party/boringssl/src/fuzz/
+rm -rf src/ui/display/util/fuzz_corpus/
+rm -rf src/third_party/blink/renderer/platform/text_codec_fuzzer_seed_corpus/
+rm -rf src/third_party/blink/renderer/bindings/core/v8/serialization/fuzz_corpus/
+rm -rf src/third_party/libwebm/source/webm_parser/fuzzing/corpus/
+rm -rf src/net/data/fuzzer_data/
+rm -rf src/device/usb/fuzz_corpus/
+rm -rf src/device/fido/response_data_fuzzer_corpus/
+rm -rf src/components/cbor/cbor_reader_fuzzer_corpus/
+rm -rf src/third_party/hunspell/fuzz/
+rm -rf src/media/midi/fuzz/corpus/
+rm -rf src/services/device/hid/fuzz_corpus/
+rm -rf src/third_party/webrtc/test/fuzzers/
+rm -rf src/content/test/data/fuzzer_corpus/
+rm -rf src/components/cast_channel/fuzz_corpus/
+## tests
+rm -rf src/third_party/blink/manual_tests/
+rm -rf src/third_party/elfutils/src/tests/
+rm -rf src/net/data/cache_tests/
+rm -rf src/components/test/data/
+rm -rf src/courgette/testdata/
+rm -rf src/third_party/protobuf/src/google/protobuf/testdata/
+rm -rf src/third_party/android_protobuf/src/src/google/protobuf/testdata/
+rm -rf src/media/test/data/
+rm -rf src/extensions/test/data/
+rm -rf src/third_party/libphonenumber/dist/java/libphonenumber/test/
+rm -rf src/third_party/ffmpeg/tests/
+rm -rf src/third_party/protobuf/python/compatibility_tests/
+rm -rf src/third_party/libphonenumber/dist/java/geocoder/test/
+rm -rf src/third_party/libphonenumber/dist/java/carrier/test/
+rm -rf src/third_party/afl/src/testcases/
+rm -rf src/third_party/tlslite/tests/
+rm -rf src/tools/binary_size/libsupersize/testdata/
+rm -rf src/base/test/data/
+rm -rf src/content/test/data/
+rm -rf src/third_party/breakpad/breakpad/src/processor/testdata/
+rm -rf src/third_party/android_platform/bionic/tools/relocation_packer/test_data/
+rm -rf src/chrome/test/data/page_cycler/cached_data_dir/
+rm -rf src/chrome/test/data/vr/webxr_samples/
+rm -rf src/chrome/test/data/diagnostics/user/
+rm -rf src/chrome/test/data/safe_browsing/
 ## kill heavy WebKit stuff
 rm -rf src/third_party/WebKit/LayoutTests
 rm -rf src/third_party/WebKit/PerformanceTests
@@ -142,8 +179,22 @@ rm -rf src/tools/perf/contrib/leak_detection
 rm -rf src/third_party/deqp
 rm -rf src/ios
 rm -rf src/native_client_sdk
-## kill exe for Windows
+rm -rf src/third_party/win_build_output/
+rm -rf src/third_party/openh264/src/autotest/performanceTest/ios/
+rm -rf src/ppapi/native_client/
+rm -rf src/third_party/protobuf/objectivec/
+rm -rf src/third_party/libphonenumber/dist/java/geocoder/src/com/google/i18n/phonenumbers/
+rm -rf src/third_party/libphonenumber/dist/java/libphonenumber/src/com/google/i18n/phonenumbers/data/
+rm -rf src/third_party/libphonenumber/dist/java/carrier/src/com/google/i18n/phonenumbers/carrier/data/
+## kill specific file extensions
 find . -iname "*.exe" -exec rm {} \;
+find . -iname "*.dll" -exec rm {} \;
+find . -iname "*.apk" -exec rm {} \;
+find . -iname "*.dylib" -exec rm {} \;
+## kill gradle files
+find . -type f -name gradle-wrapper.jar -exec rm -f {} \;
+find . -type f -name build.gradle -exec rm -f {} \;
+
 
 ## remove unsafe symlinks
 rm -f src/third_party/mesa/src/src/gallium/state_trackers/d3d1x/w32api
