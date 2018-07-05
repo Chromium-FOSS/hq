@@ -123,6 +123,10 @@ rm -rf src/v8/test/fuzzer/wasm_corpus
 rm -rf src/tools/traffic_annotation
 rm -rf src/buildtools/android/doclava
 rm src/buildtools/android/doclava.tar.gz
+## ninja
+rm src/third_party/depot_tools/ninja-linux64
+rm src/third_party/depot_tools/ninja-linux32
+rm src/third_party/depot_tools/ninja-mac
 
 ##### random heavy files and binaries
 ## kill SDK sources
@@ -143,6 +147,7 @@ rm -rf src/services/device/hid/fuzz_corpus/
 rm -rf src/third_party/webrtc/test/fuzzers/
 rm -rf src/content/test/data/fuzzer_corpus/
 rm -rf src/components/cast_channel/fuzz_corpus/
+rm src/third_party/skia/resources/invalid_images/ossfuzz6347
 ## tests
 rm -rf src/third_party/blink/manual_tests/
 rm -rf src/third_party/elfutils/src/tests/
@@ -169,6 +174,12 @@ rm -rf src/chrome/test/data/page_cycler/cached_data_dir/
 rm -rf src/chrome/test/data/vr/webxr_samples/
 rm -rf src/chrome/test/data/diagnostics/user/
 rm -rf src/chrome/test/data/safe_browsing/
+rm -rf src/chrome/test/data/extensions/api_test/
+rm -rf src/chrome/test/data/profiles/profile_with_complex_theme/Default/Extensions/
+rm -rf src/chrome/test/data/profiles/sample/
+rm -rf src/third_party/catapult/third_party/gsutil/third_party/httplib2/test/
+rm -rf src/third_party/junit/src/src/test/resources/junit/tests/runner/
+rm -rf src/third_party/webgl/src/sdk/demos/
 ## kill heavy WebKit stuff
 rm -rf src/third_party/WebKit/LayoutTests
 rm -rf src/third_party/WebKit/PerformanceTests
@@ -186,11 +197,19 @@ rm -rf src/third_party/protobuf/objectivec/
 rm -rf src/third_party/libphonenumber/dist/java/geocoder/src/com/google/i18n/phonenumbers/
 rm -rf src/third_party/libphonenumber/dist/java/libphonenumber/src/com/google/i18n/phonenumbers/data/
 rm -rf src/third_party/libphonenumber/dist/java/carrier/src/com/google/i18n/phonenumbers/carrier/data/
+rm -rf src/third_party/breakpad/breakpad/src/client/mac/
+rm -rf src/third_party/sfntly/src/cpp/ext/redist/
+rm -rf src/tools/binary_size/libsupersize/third_party/gvr-android-sdk/
+rm -rf src/third_party/catapult/third_party/vinn/third_party/v8/
+rm -rf src/third_party/webrtc/data/rtp_rtcp/
+rm -rf src/third_party/skia/platform_tools/android/bin/
+rm -rf src/chrome/common/extensions/docs/
 ## kill specific file extensions
 find . -iname "*.exe" -exec rm {} \;
 find . -iname "*.dll" -exec rm {} \;
 find . -iname "*.apk" -exec rm {} \;
 find . -iname "*.dylib" -exec rm {} \;
+find . -iname "*.so" -exec rm {} \;
 ## kill gradle files
 find . -type f -name gradle-wrapper.jar -exec rm -f {} \;
 find . -type f -name build.gradle -exec rm -f {} \;
