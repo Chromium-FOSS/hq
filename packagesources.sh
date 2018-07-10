@@ -212,8 +212,9 @@ find . -iname "*.dylib" -exec rm {} \;
 find . -iname "*.so" -exec rm {} \;
 ## kill gradle files
 find . -type f -name gradle-wrapper.jar -exec rm -f {} \;
-find . -type f -name build.gradle -exec rm -f {} \;
-
+#find . -type f -name build.gradle -exec rm -f {} \;
+rm src/third_party/libaddressinput/src/android/build.gradle
+rm src/third_party/robolectric/robolectric/shadows/playservices/build.gradle
 
 ## remove unsafe symlinks
 rm -f src/third_party/mesa/src/src/gallium/state_trackers/d3d1x/w32api
