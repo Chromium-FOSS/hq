@@ -92,6 +92,10 @@ rm -rf depot_tools
 rm -rf src/third_party/android_ndk
 ## kill unused SDK
 rm -rf src/third_party/android_sdk
+## sdk extras
+rm -rf src/third_party/android_tools/sdk/extras/android
+## kill SDK sources
+rm -rf src/third_party/android_tools/sdk/sources
 ## kill parts of SDK, will use standard
 rm -rf src/third_party/android_tools/sdk/tools
 rm -rf src/third_party/android_tools/sdk/platform-tools
@@ -99,6 +103,9 @@ rm -rf src/third_party/android_tools/sdk/platforms
 rm -rf src/third_party/android_tools/sdk/build-tools
 
 ##### other prebuilts
+## android_deps
+rm -rf src/third_party/android_deps/repository
+rm src/third_party/android_deps/additional_readme_paths.json
 ## kill emulator, don't need
 rm -rf src/third_party/android_tools/sdk/emulator
 ## VR SDK
@@ -127,10 +134,12 @@ rm src/buildtools/android/doclava.tar.gz
 rm src/third_party/depot_tools/ninja-linux64
 rm src/third_party/depot_tools/ninja-linux32
 rm src/third_party/depot_tools/ninja-mac
+## eu-strip
+rm -rf src/third_party/eu-strip/bin
+rm -rf src/third_party/pdfium/third_party/eu-strip/bin
+rm -rf src/v8/third_party/eu-strip/bin
 
 ##### random heavy files and binaries
-## kill SDK sources
-rm -rf src/third_party/android_tools/sdk/sources
 ## fuzzy stuff
 rm -rf src/third_party/boringssl/src/fuzz/
 rm -rf src/ui/display/util/fuzz_corpus/
@@ -180,6 +189,12 @@ rm -rf src/chrome/test/data/profiles/sample/
 rm -rf src/third_party/catapult/third_party/gsutil/third_party/httplib2/test/
 rm -rf src/third_party/junit/src/src/test/resources/junit/tests/runner/
 rm -rf src/third_party/webgl/src/sdk/demos/
+rm -rf src/chrome/test/data/extensions/api_test/
+rm -rf src/chrome/test/data/profiles/profile_with_complex_theme/Default/Extensions/
+rm -rf src/chrome/test/data/profiles/sample/
+rm -rf src/third_party/catapult/third_party/gsutil/third_party/httplib2/test/
+rm -rf src/third_party/junit/src/src/test/resources/junit/tests/runner/
+rm -rf src/third_party/webgl/src/sdk/demos/
 ## kill heavy WebKit stuff
 rm -rf src/third_party/WebKit/LayoutTests
 rm -rf src/third_party/WebKit/PerformanceTests
@@ -204,17 +219,28 @@ rm -rf src/third_party/catapult/third_party/vinn/third_party/v8/
 rm -rf src/third_party/webrtc/data/rtp_rtcp/
 rm -rf src/third_party/skia/platform_tools/android/bin/
 rm -rf src/chrome/common/extensions/docs/
+rm -rf src/tools/binary_size/libsupersize/third_party/gvr-android-sdk/
+rm -rf src/third_party/catapult/third_party/vinn/third_party/v8/
+rm -rf src/third_party/webrtc/data/rtp_rtcp/
+rm -rf src/third_party/skia/platform_tools/android/bin/
+rm -rf src/chrome/common/extensions/docs/
+rm -rf src/third_party/breakpad/breakpad/src/client/mac/
+rm -rf src/third_party/sfntly/src/cpp/ext/redist/
 ## kill specific file extensions
 find . -iname "*.exe" -exec rm {} \;
 find . -iname "*.dll" -exec rm {} \;
 find . -iname "*.apk" -exec rm {} \;
 find . -iname "*.dylib" -exec rm {} \;
 find . -iname "*.so" -exec rm {} \;
+find . -iname "*.aar" -exec rm {} \;
+find . -iname "*.jar" -exec rm {} \;
 ## kill gradle files
 find . -type f -name gradle-wrapper.jar -exec rm -f {} \;
 #find . -type f -name build.gradle -exec rm -f {} \;
 rm src/third_party/libaddressinput/src/android/build.gradle
 rm src/third_party/robolectric/robolectric/shadows/playservices/build.gradle
+## gradle-wrapper
+rm -rf src/third_party/gradle_wrapper
 
 ## remove unsafe symlinks
 rm -f src/third_party/mesa/src/src/gallium/state_trackers/d3d1x/w32api
