@@ -2,7 +2,7 @@
 
 ## get the tags from
 ## https://omahaproxy.appspot.com/
-RELEASE="67.0.3396.87"
+RELEASE="68.0.3440.70"
 
 mkdir chromium && cd chromium
 
