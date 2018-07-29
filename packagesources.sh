@@ -196,16 +196,10 @@ rm -rf src/chrome/test/data/diagnostics/user/
 rm -rf src/chrome/test/data/safe_browsing/
 rm -rf src/chrome/test/data/extensions/api_test/
 rm -rf src/chrome/test/data/profiles/profile_with_complex_theme/Default/Extensions/
-rm -rf src/chrome/test/data/profiles/sample/
 rm -rf src/third_party/catapult/third_party/gsutil/third_party/httplib2/test/
 rm -rf src/third_party/junit/src/src/test/resources/junit/tests/runner/
 rm -rf src/third_party/webgl/src/sdk/demos/
-rm -rf src/chrome/test/data/extensions/api_test/
-rm -rf src/chrome/test/data/profiles/profile_with_complex_theme/Default/Extensions/
 rm -rf src/chrome/test/data/profiles/sample/
-rm -rf src/third_party/catapult/third_party/gsutil/third_party/httplib2/test/
-rm -rf src/third_party/junit/src/src/test/resources/junit/tests/runner/
-rm -rf src/third_party/webgl/src/sdk/demos/
 ## kill heavy WebKit stuff
 rm -rf src/third_party/WebKit/LayoutTests
 rm -rf src/third_party/WebKit/PerformanceTests
@@ -230,13 +224,6 @@ rm -rf src/third_party/catapult/third_party/vinn/third_party/v8/
 rm -rf src/third_party/webrtc/data/rtp_rtcp/
 rm -rf src/third_party/skia/platform_tools/android/bin/
 rm -rf src/chrome/common/extensions/docs/
-rm -rf src/tools/binary_size/libsupersize/third_party/gvr-android-sdk/
-rm -rf src/third_party/catapult/third_party/vinn/third_party/v8/
-rm -rf src/third_party/webrtc/data/rtp_rtcp/
-rm -rf src/third_party/skia/platform_tools/android/bin/
-rm -rf src/chrome/common/extensions/docs/
-rm -rf src/third_party/breakpad/breakpad/src/client/mac/
-rm -rf src/third_party/sfntly/src/cpp/ext/redist/
 ## kill specific file extensions
 find . -iname "*.exe" -exec rm {} \;
 find . -iname "*.dll" -exec rm {} \;
