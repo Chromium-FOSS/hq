@@ -84,6 +84,17 @@ mv .gclient_entries src/CFOSSlogs/gclient_entries
 ###CLEANUP###
 #############
 
+## can't immediately remove cipd files, they are symlinked all over the src
+## @nvasya solution
+find -type l -print0 | while IFS= read -r -d $'\0' symlink; do
+  REAL=$(realpath -- "$symlink")
+  if ! test "$REAL" = "${REAL/\.cipd/}"; then
+    rm -- "$symlink"
+    cp -alr -- "$REAL" "$symlink"  # warning! hardlinking.
+  fi
+done
+rm -rf .cipd
+
 ## kill depot_tools, will use bundled during build
 rm -rf depot_tools
 
@@ -249,17 +260,6 @@ rm -f src/third_party/mesa/src/src/gallium/state_trackers/d3d1x/w32api
 find -name .git | xargs rm -rf
 ## and gitignore
 find . -type f -name .gitignore -exec rm -f {} \;
-
-## can't immediately remove cipd files, they are symlinked all over the src
-## @nvasya solution
-find -type l -print0 | while IFS= read -r -d $'\0' symlink; do
-  REAL=$(realpath -- "$symlink")
-  if ! test "$REAL" = "${REAL/\.cipd/}"; then
-    rm -- "$symlink"
-    cp -alr -- "$REAL" "$symlink"  # warning! hardlinking.
-  fi
-done
-rm -rf .cipd
 
 ## rm out dir
 rm -rf src/out
